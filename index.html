@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mi UChile - App Oficial</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'uchile-blue': '#002B7A',
+                        'uchile-red': '#D31118',
+                        'uchile-gold': '#D4AF37',
+                        'ios-bg': '#0B0F19',
+                        'ios-card': 'rgba(26, 34, 52, 0.75)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Motion library for spring animations (Apple-style, §4) -->
+    <script type="module">
+        import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/motion@10.16.4/+esm';
+        window.Motion = { animate, stagger };
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+
+        /* ============================================
+           Apple Design tokens (skill: apple-design)
+           ============================================ */
+        :root {
+            --spring-easing: cubic-bezier(0.22, 1, 0.36, 1);     /* critically damped feel */
+            --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);  /* slight overshoot for momentum */
+            --text-primary: #F3F4F6;
+        }
+
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            font-optical-sizing: auto;  /* §15: optical sizing */
+        }
+
+        body {
+            background-color: #0B0F19;
+            color: #F3F4F6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            letter-spacing: -0.011em;  /* §15: body tracking */
+        }
+
+        /* §15: Typography — size-specific tracking & leading (Apple optical sizing) */
+        h1, h2, h3 {
+            letter-spacing: -0.02em;   /* tighten large text */
+            font-weight: 700;
+            font-optical-sizing: auto;
+        }
+        .text-xs, .text-[11px], .text-[10px] {
+            letter-spacing: 0.01em;    /* small text wants slightly positive tracking */
+        }
+        .uppercase.tracking-widest, .uppercase.tracking-wider {
+            letter-spacing: 0.08em;    /* captions stay airy */
+        }
+
+        /* ============================================
+           §12: Materials & depth — translucency conveys hierarchy
+           ============================================ */
+        .glass-panel {
+            background: rgba(22, 30, 49, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top-color: rgba(255, 255, 255, 0.18);  /* bright top edge = light catching material */
+            box-shadow:
+                0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+                0 8px 32px -8px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-panel-highlight {
+            background: linear-gradient(135deg, rgba(0, 43, 122, 0.85) 0%, rgba(211, 17, 24, 0.75) 100%);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-top-color: rgba(255, 255, 255, 0.28);
+            box-shadow:
+                0 1px 0 0 rgba(255, 255, 255, 0.2) inset,
+                0 8px 32px 0 rgba(0, 43, 122, 0.37);
+        }
+
+        .glass-nav {
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 -1px 0 0 rgba(255, 255, 255, 0.06) inset,
+                0 -8px 24px -4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* §12: Vibrancy — text legible sobre backgrounds translúcidos */
+        .glass-panel-highlight strong,
+        .glass-panel-highlight span {
+            font-weight: 500;
+        }
+
+        /* §12: Scroll edge effects instead of hard dividers */
+        .scroll-fade-top {
+            position: relative;
+        }
+        .scroll-fade-top::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 12px;
+            background: linear-gradient(to bottom, rgba(11, 15, 25, 0.6), transparent);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ============================================
+           §1 & §10: Press feedback — respond on pointer-down, instant
+           ============================================ */
+        .pressable {
+            transition: transform 0.4s var(--spring-easing);
+            will-change: transform;
+            cursor: pointer;
+        }
+        .pressable:active {
+            transform: scale(0.97);
+            transition: transform 100ms ease-out;
+        }
+
+        /* Bottom nav — Apple spring + scale on press (§1, §4, §10) */
+        .nav-btn {
+            transition: transform 0.4s var(--spring-easing), color 0.3s ease;
+            will-change: transform;
+        }
+        .nav-btn:active {
+            transform: scale(0.92);
+            transition: transform 100ms ease-out;
+        }
+        .nav-btn.text-blue-400 svg {
+            transform: scale(1.08);
+            transition: transform 0.45s var(--spring-bounce);
+        }
+
+        /* ============================================
+           §3 & §8: Tab content entrance — hint in direction of motion (spring)
+           ============================================ */
+        .tab-content {
+            animation: tabEnter 0.5s var(--spring-easing) both;
+        }
+        @keyframes tabEnter {
+            0%   { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(4px); }
+            60%  { opacity: 1; filter: blur(0); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        .tab-content > * {
+            animation: childEnter 0.5s var(--spring-easing) both;
+            animation-delay: calc(var(--i, 0) * 50ms);
+        }
+        @keyframes childEnter {
+            0%   { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* §4 & §5: Player markers — spring on formation change */
+        .player-marker {
+            transition: top 0.55s var(--spring-bounce), left 0.55s var(--spring-bounce), transform 0.4s var(--spring-easing);
+            will-change: transform, top, left;
+        }
+        .player-marker:active { transform: scale(0.92); }
+
+        /* Custom Scrollbar for Standings Table */
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+        }
+
+        /* Hide Scrollbars in iOS Tab Views */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* §13: Soft pulse refinement (multimodal feedback — visual layer) */
+        @keyframes softPulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.55; }
+        }
+        .animate-pulse { animation: softPulse 2s ease-in-out infinite; }
+
+        /* ============================================
+           §14: Reduced motion & accessibility
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            .tab-content, .tab-content > *, .player-marker, .pressable, .nav-btn, .nav-btn svg, .animate-pulse {
+                animation: none !important;
+                transition: opacity 200ms ease !important;
+                transform: none !important;
+                filter: none !important;
+            }
+        }
+        @media (prefers-reduced-transparency: reduce) {
+            .glass-panel, .glass-nav, .glass-panel-highlight {
+                background: rgba(20, 28, 46, 0.95) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+        }
+        @media (prefers-contrast: more) {
+            .glass-panel, .glass-nav, .glass-panel-highlight {
+                border-color: rgba(255, 255, 255, 0.35) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-ios-bg text-gray-100 min-h-screen flex flex-col pb-24">
+
+    <!-- Header / Status Bar Area (original) -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pt-4 pb-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-uchile-blue border-2 border-uchile-gold flex items-center justify-center font-bold text-white shadow-md pressable">
+                U
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-none tracking-tight">Mi UChile</h1>
+                <p class="text-[11px] text-gray-400 font-medium mt-0.5">App Oficial del Romántico Viajero</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5 animate-pulse"></span> Liga de Primera 2026
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main id="app-content" class="flex-grow p-4 max-w-4xl mx-auto w-full">
+        <!-- Content injected via JavaScript -->
+    </main>
+
+    <!-- Bottom Navigation Bar — 6 items con scroll horizontal (Apple-style spring scroll) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 glass-nav px-2 py-2">
+        <div class="max-w-2xl mx-auto flex gap-1 overflow-x-auto no-scrollbar text-center">
+            <button onclick="switchTab('tabla')" id="tab-tabla" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-blue-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <span>Tabla</span>
+            </button>
+            <button onclick="switchTab('partidos')" id="tab-partidos" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>Partidos</span>
+            </button>
+            <button onclick="switchTab('plantel')" id="tab-plantel" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span>Plantel</span>
+            </button>
+            <button onclick="switchTab('competiciones')" id="tab-competiciones" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                <span>Copas</span>
+            </button>
+            <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span>Estadísticas</span>
+            </button>
+            <button onclick="switchTab('cultura')" id="tab-cultura" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                <span>Mística</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- App State & Interactivity Scripts -->
+    <script>
+        // ============================================================
+        // Logo escudos (vectorizados SVG/PNG descargados de Wikimedia
+        // Commons + estilizados para los clubes sin escudo en Commons)
+        // ============================================================
+        const LOGOS = {
+            "CC":   "logos/colo-colo.svg",
+            "UCH":  "logos/universidad-de-chile.png",
+            "UC":   "logos/universidad-catolica.svg",
+            "EVE":  "logos/everton.png",
+            "PAL":  "logos/palestino.png",
+            "LIM":  "logos/deportes-limache.svg",
+            "HUA":  "logos/huachipato.svg",
+            "ÑUB":  "logos/nublense.png",
+            "SER":  "logos/la-serena.svg",
+            "COQ":  "logos/coquimbo-unido.svg",
+            "CON":  "logos/deportes-concepcion.svg",
+            "AUD":  "logos/audax-italiano.png",
+            "OHI":  "logos/ohiggins.svg",
+            "CSL":  "logos/cobresal.svg",
+            "UDC":  "logos/universidad-de-concepcion.svg",
+            "ULC":  "logos/union-la-calera.png"
+        };
+        // Helper: returns the logo path for a team code, with a graceful
+        // fallback for unknown codes (returns null and the UI will keep
+        // the text-only circle).
+        function logoFor(code) { return LOGOS[code] || null; }
+
+        // Data derived exactly from user supplied standings screenshot (Temporada 2026 - Liga de Primera)
+        const standingsData = [
+            { pos: 1, name: "Colo-Colo", code: "CC", pj: 25, g: 17, e: 4, p: 4, gf: 51, gc: 28, dg: 23, pts: 55, last5: ['G', 'G', 'E', 'P', 'E'], zone: 'libertadores' },
+            { pos: 2, name: "U. de Chile", code: "UCH", pj: 24, g: 13, e: 6, p: 5, gf: 41, gc: 19, dg: 22, pts: 45, last5: ['P', 'P', 'G', 'G', 'G'], isU: true, zone: 'libertadores' },
+            { pos: 3, name: "U. Católica", code: "UC", pj: 24, g: 13, e: 3, p: 8, gf: 51, gc: 36, dg: 15, pts: 42, last5: ['G', 'G', 'G', 'G', 'P'], zone: 'libertadores' },
+            { pos: 4, name: "Everton", code: "EVE", pj: 24, g: 11, e: 6, p: 7, gf: 40, gc: 27, dg: 13, pts: 39, last5: ['G', 'G', 'P', 'G', 'G'], zone: 'sudamericana' },
+            { pos: 5, name: "Palestino", code: "PAL", pj: 25, g: 11, e: 5, p: 9, gf: 39, gc: 36, dg: 3, pts: 38, last5: ['P', 'G', 'E', 'E', 'E'], zone: 'sudamericana' },
+            { pos: 6, name: "Deportes Limache", code: "LIM", pj: 25, g: 11, e: 4, p: 10, gf: 46, gc: 37, dg: 9, pts: 37, last5: ['G', 'G', 'P', 'E', 'G'], zone: 'sudamericana' },
+            { pos: 7, name: "Huachipato", code: "HUA", pj: 25, g: 10, e: 5, p: 10, gf: 35, gc: 40, dg: -5, pts: 35, last5: ['P', 'E', 'G', 'G', 'E'], zone: 'sudamericana' },
+            { pos: 8, name: "Ñublense", code: "ÑUB", pj: 25, g: 9, e: 8, p: 8, gf: 30, gc: 38, dg: -8, pts: 35, last5: ['P', 'P', 'P', 'P', 'P'] },
+            { pos: 9, name: "La Serena", code: "SER", pj: 25, g: 8, e: 9, p: 8, gf: 39, gc: 42, dg: -3, pts: 33, last5: ['P', 'G', 'P', 'P', 'E'] },
+            { pos: 10, name: "Coquimbo Unido", code: "COQ", pj: 25, g: 9, e: 5, p: 11, gf: 37, gc: 36, dg: 1, pts: 32, last5: ['G', 'G', 'P', 'G', 'P'] },
+            { pos: 11, name: "Concepción", code: "CON", pj: 25, g: 9, e: 5, p: 11, gf: 27, gc: 30, dg: -3, pts: 32, last5: ['G', 'G', 'P', 'E', 'P'] },
+            { pos: 12, name: "Audax Italiano", code: "AUD", pj: 24, g: 7, e: 8, p: 9, gf: 27, gc: 32, dg: -5, pts: 29, last5: ['E', 'G', 'G', 'G', 'G'] },
+            { pos: 13, name: "O'Higgins", code: "OHI", pj: 25, g: 8, e: 4, p: 13, gf: 29, gc: 39, dg: -10, pts: 28, last5: ['G', 'P', 'P', 'P', 'E'] },
+            { pos: 14, name: "Cobresal", code: "CSL", pj: 25, g: 7, e: 5, p: 13, gf: 36, gc: 46, dg: -10, pts: 26, last5: ['E', 'P', 'G', 'G', 'E'] },
+            { pos: 15, name: "Univ. Concepción", code: "UDC", pj: 25, g: 6, e: 5, p: 14, gf: 18, gc: 41, dg: -23, pts: 23, last5: ['P', 'P', 'P', 'E', 'P'], zone: 'descenso' },
+            { pos: 16, name: "U. La Calera", code: "ULC", pj: 25, g: 5, e: 6, p: 14, gf: 23, gc: 42, dg: -19, pts: 21, last5: ['P', 'P', 'E', 'E', 'G'], zone: 'descenso' }
+        ];
+
+        // Plantel Oficial 2026
+        const rosterData = [
+            { category: "Arqueros", players: [ { num: 1, name: "Gabriel Castellón", status: "Titular" }, { num: 12, name: "Cristopher Toselli", status: "Suplente" } ] },
+            { category: "Defensas", players: [ { num: 2, name: "Franco Calderón", status: "Titular" }, { num: 3, name: "Igor Lichnovsky", status: "Refuerzo 2026" }, { num: 17, name: "Fabian Hormazábal", status: "Titular" }, { num: 22, name: "Matías Zaldivia", status: "Titular" }, { num: 26, name: "Nicolás Ramírez", status: "Rotación" } ] },
+            { category: "Volantes", players: [ { num: 20, name: "Charles Aránguiz", status: "Leyenda / Capitán" }, { num: 21, name: "Marcelo Díaz", status: "Capitán" }, { num: 8, name: "Gonzalo Montes", status: "Titular" }, { num: 10, name: "Javier Altamirano", status: "Titular" } ] },
+            { category: "Delanteros", players: [ { num: 7, name: "Maximiliano Guerrero", status: "Titular" }, { num: 11, name: "Eduardo Vargas", status: "Retorno Estrella" }, { num: 9, name: "Octavio Rivero", status: "Delantero Centro" } ] }
+        ];
+
+        // ============================================================
+        // Datos de competiciones y estadísticas
+        // (se cargan dinámicamente desde data.json al iniciar la app;
+        // estos son los valores iniciales/de fallback si fetch falla)
+        // ============================================================
+        let appData = null;       // se llena desde data.json
+        let currentTab = '';
+        let currentCompetition = 'prelibertadores';  // sub-tab de la vista Competiciones
+
+        // Estructura inicial (fallback si data.json no carga)
+        const FALLBACK_DATA = {
+            liga: {
+                standings: [
+                    { pos: 1, name: "Colo-Colo", code: "CC", pj: 25, g: 17, e: 4, p: 4, gf: 51, gc: 28, dg: 23, pts: 55, last5: ['G','G','E','P','E'], zone: 'libertadores' },
+                    { pos: 2, name: "U. de Chile", code: "UCH", pj: 24, g: 13, e: 6, p: 5, gf: 41, gc: 19, dg: 22, pts: 45, last5: ['P','P','G','G','G'], isU: true, zone: 'libertadores' },
+                    { pos: 3, name: "U. Católica", code: "UC", pj: 24, g: 13, e: 3, p: 8, gf: 51, gc: 36, dg: 15, pts: 42, last5: ['G','G','G','G','P'], zone: 'libertadores' },
+                    { pos: 4, name: "Everton", code: "EVE", pj: 24, g: 11, e: 6, p: 7, gf: 40, gc: 27, dg: 13, pts: 39, last5: ['G','G','P','G','G'], zone: 'sudamericana' },
+                    { pos: 5, name: "Palestino", code: "PAL", pj: 25, g: 11, e: 5, p: 9, gf: 39, gc: 36, dg: 3, pts: 38, last5: ['P','G','E','E','E'], zone: 'sudamericana' },
+                    { pos: 6, name: "Deportes Limache", code: "LIM", pj: 25, g: 11, e: 4, p: 10, gf: 46, gc: 37, dg: 9, pts: 37, last5: ['G','G','P','E','G'], zone: 'sudamericana' },
+                    { pos: 7, name: "Huachipato", code: "HUA", pj: 25, g: 10, e: 5, p: 10, gf: 35, gc: 40, dg: -5, pts: 35, last5: ['P','E','G','G','E'], zone: 'sudamericana' },
+                    { pos: 8, name: "Ñublense", code: "ÑUB", pj: 25, g: 9, e: 8, p: 8, gf: 30, gc: 38, dg: -8, pts: 35, last5: ['P','P','P','P','P'] },
+                    { pos: 9, name: "La Serena", code: "SER", pj: 25, g: 8, e: 9, p: 8, gf: 39, gc: 42, dg: -3, pts: 33, last5: ['P','G','P','P','E'] },
+                    { pos: 10, name: "Coquimbo Unido", code: "COQ", pj: 25, g: 9, e: 5, p: 11, gf: 37, gc: 36, dg: 1, pts: 32, last5: ['G','G','P','G','P'] },
+                    { pos: 11, name: "Concepción", code: "CON", pj: 25, g: 9, e: 5, p: 11, gf: 27, gc: 30, dg: -3, pts: 32, last5: ['G','G','P','E','P'] },
+                    { pos: 12, name: "Audax Italiano", code: "AUD", pj: 24, g: 7, e: 8, p: 9, gf: 27, gc: 32, dg: -5, pts: 29, last5: ['E','G','G','G','G'] },
+                    { pos: 13, name: "O'Higgins", code: "OHI", pj: 25, g: 8, e: 4, p: 13, gf: 29, gc: 39, dg: -10, pts: 28, last5: ['G','P','P','P','E'] },
+                    { pos: 14, name: "Cobresal", code: "CSL", pj: 25, g: 7, e: 5, p: 13, gf: 36, gc: 46, dg: -10, pts: 26, last5: ['E','P','G','G','E'] },
+                    { pos: 15, name: "Univ. Concepción", code: "UDC", pj: 25, g: 6, e: 5, p: 14, gf: 18, gc: 41, dg: -23, pts: 23, last5: ['P','P','P','E','P'], zone: 'descenso' },
+                    { pos: 16, name: "U. La Calera", code: "ULC", pj: 25, g: 5, e: 6, p: 14, gf: 23, gc: 42, dg: -19, pts: 21, last5: ['P','P','E','E','G'], zone: 'descenso' }
+                ],
+                recent_results: [
+                    { home: "U. de Chile", hCode: "UCH", hScore: 6, away: "Ñublense", aCode: "ÑUB", aScore: 0, date: "Fecha 24", win: true },
+                    { home: "Everton", hCode: "EVE", hScore: 1, away: "U. de Chile", aCode: "UCH", aScore: 1, date: "Fecha 23", draw: true },
+                    { home: "U. de Chile", hCode: "UCH", hScore: 0, away: "Everton", aCode: "EVE", aScore: 1, date: "Copa Chile", win: false },
+                    { home: "La Serena", hCode: "SER", hScore: 0, away: "U. de Chile", aCode: "UCH", aScore: 3, date: "Fecha 22", win: true },
+                    { home: "U. de Chile", hCode: "UCH", hScore: 4, away: "Coquimbo", aCode: "COQ", aScore: 2, date: "Fecha 21", win: true },
+                    { home: "Colo-Colo", hCode: "CC", hScore: 2, away: "U. de Chile", aCode: "UCH", aScore: 1, date: "Fecha 20", win: false }
+                ],
+                next_match: {
+                    home_code: "UCH", away_code: "EVE",
+                    home_name: "U. de Chile", away_name: "Everton",
+                    time: "18:00", venue: "Estadio Nacional",
+                    status: "HOY EN VIVO",
+                    competition: "Liga de Primera 2026"
+                }
+            },
+            competiciones: {
+                prelibertadores: {
+                    nombre: "Serie Pre-Libertadores",
+                    descripcion: "Mini-torneo que define los cupos chilenos a la Copa Libertadores.",
+                    equipos: [
+                        { name: "U. Católica", code: "UC", motivo: "3° Liga de Primera" },
+                        { name: "Everton", code: "EVE", motivo: "4° Liga de Primera" },
+                        { name: "Palestino", code: "PAL", motivo: "5° Liga de Primera" },
+                        { name: "Deportes Limache", code: "LIM", motivo: "6° Liga de Primera" }
+                    ],
+                    fixtures: [
+                        { fecha: "Semifinal 1", home: "U. Católica", hCode: "UC", away: "Deportes Limache", aCode: "LIM", hScore: null, aScore: null, jugado: false },
+                        { fecha: "Semifinal 2", home: "Everton", hCode: "EVE", away: "Palestino", aCode: "PAL", hScore: null, aScore: null, jugado: false },
+                        { fecha: "Final", home: "Ganador S1", hCode: "UC", away: "Ganador S2", aCode: "EVE", hScore: null, aScore: null, jugado: false }
+                    ],
+                    estado: "Por disputarse"
+                },
+                libertadores: {
+                    nombre: "Copa Libertadores 2026",
+                    descripcion: "Torneo continental más importante. Chile tiene 4 cupos: Chile 1, 2, 3 y 4.",
+                    equipos_chilenos: [
+                        { name: "Colo-Colo", code: "CC", motivo: "Chile 1 — Campeón Liga 2025" },
+                        { name: "Coquimbo Unido", code: "COQ", motivo: "Chile 2 — Subcampeón Liga 2025" },
+                        { name: "U. Católica", code: "UC", motivo: "Chile 3 — Copa de la Liga 2026" },
+                        { name: "U. de Chile", code: "UCH", motivo: "Chile 4 — Serie Pre-Libertadores" }
+                    ],
+                    estado: "Fase de grupos — en curso",
+                    fase_actual: "Fase de grupos",
+                    grupo_uch: { grupo: "B", posicion: 1, pj: 3, pts: 7, dg: 5 }
+                },
+                sudamericana: {
+                    nombre: "Copa Sudamericana 2026",
+                    descripcion: "Segundo torneo continental. Chile tiene 4 cupos (Chile 1–4).",
+                    equipos_chilenos: [
+                        { name: "Huachipato", code: "HUA", motivo: "Chile 1 — 7° Liga 2025" },
+                        { name: "Ñublense", code: "ÑUB", motivo: "Chile 2 — 8° Liga 2025" },
+                        { name: "La Serena", code: "SER", motivo: "Chile 3 — Copa Chile 2025" },
+                        { name: "Audax Italiano", code: "AUD", motivo: "Chile 4 — 9° Liga 2025" }
+                    ],
+                    estado: "Fase de grupos — en curso",
+                    fase_actual: "Fase de grupos"
+                },
+                supercopa: {
+                    nombre: "Supercopa de Chile 2026",
+                    descripcion: "Torneo entre los finalistas de la Liga de Primera y la Copa Chile del año anterior.",
+                    campeon: { name: "Coquimbo Unido", code: "COQ" },
+                    subcampeon: { name: "Universidad Católica", code: "UC" },
+                    semifinales: [
+                        { home: "Huachipato", hCode: "HUA", hScore: 2, away: "U. Católica", aCode: "UC", aScore: 4, ganador: "UC" },
+                        { home: "Coquimbo Unido", hCode: "COQ", hScore: 3, away: "Deportes Limache", aCode: "LIM", aScore: 2, ganador: "COQ" }
+                    ],
+                    final: { home: "Coquimbo Unido", hCode: "COQ", away: "U. Católica", aCode: "UC", hPen: 8, aPen: 7, ganador: "COQ" },
+                    estado: "Finalizado — Campeón: Coquimbo Unido"
+                }
+            },
+            estadisticas: {
+                goleadores: [
+                    { rank: 1, name: "Maximiliano Guerrero", team_code: "UCH", goles: 14, pj: 24 },
+                    { rank: 2, name: "César Pinares", team_code: "CC", goles: 12, pj: 25 },
+                    { rank: 3, name: "Cristian Zavala", team_code: "PAL", goles: 11, pj: 25 },
+                    { rank: 4, name: "Alexander Aravena", team_code: "UC", goles: 10, pj: 24 },
+                    { rank: 5, name: "Martín Cauteruccio", team_code: "AUD", goles: 9, pj: 24 }
+                ],
+                asistencias: [
+                    { rank: 1, name: "Javier Altamirano", team_code: "UCH", asistencias: 8, pj: 22 },
+                    { rank: 2, name: "César Pinares", team_code: "CC", asistencias: 7, pj: 25 },
+                    { rank: 3, name: "Fabián Hormazábal", team_code: "HUA", asistencias: 6, pj: 24 },
+                    { rank: 4, name: "Cristian Zavala", team_code: "PAL", asistencias: 5, pj: 25 },
+                    { rank: 5, name: "Gonzalo Montes", team_code: "UCH", asistencias: 5, pj: 20 }
+                ],
+                vallas_invictas: [
+                    { rank: 1, name: "Gabriel Castellón", team_code: "UCH", vallas: 9, pj: 24 },
+                    { rank: 2, name: "Brayan Cortés", team_code: "CC", vallas: 8, pj: 25 },
+                    { rank: 3, name: "Matías Cano", team_code: "UC", vallas: 7, pj: 22 },
+                    { rank: 4, name: "Nicolás Peric", team_code: "EVE", vallas: 6, pj: 23 },
+                    { rank: 5, name: "Carlos Lampe", team_code: "HUA", vallas: 5, pj: 24 }
+                ]
+            },
+            meta: {
+                ultima_actualizacion: new Date().toISOString(),
+                fuente: "Wikipedia (CC BY-SA) — datos cargados desde data.json",
+                temporada: "2026"
+            }
+        };
+
+        // Alias: mientras data.json no carga, usamos FALLBACK_DATA
+        function getData() { return appData || FALLBACK_DATA; }
+
+        // Render Functions for Views
+        function renderStandings() {
+            return `
+                <div class="tab-content space-y-4">
+                    <!-- Filters & Header Info -->
+                    <div class="glass-panel p-4 rounded-3xl flex flex-wrap items-center justify-between gap-3" style="--i:0">
+                        <div>
+                            <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Campeonato Nacional</span>
+                            <h2 class="text-xl font-bold text-white">Tabla de Posiciones</h2>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select class="bg-slate-800/80 text-xs font-semibold text-gray-200 border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none pressable">
+                                <option>Liga de Primera</option>
+                            </select>
+                            <select class="bg-slate-800/80 text-xs font-semibold text-blue-400 border border-blue-500/30 rounded-xl px-3 py-1.5 focus:outline-none pressable">
+                                <option>Temporada 2026</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Standing Table Scrollable Container -->
+                    <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-white/10" style="--i:1">
+                        <div class="table-container overflow-x-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead>
+                                    <tr class="bg-slate-900/90 text-gray-400 font-semibold border-b border-white/10 uppercase tracking-wider text-[10px]">
+                                        <th class="py-3 px-3 text-center">#</th>
+                                        <th class="py-3 px-4">Club</th>
+                                        <th class="py-3 px-2 text-center">PJ</th>
+                                        <th class="py-3 px-2 text-center">G</th>
+                                        <th class="py-3 px-2 text-center">E</th>
+                                        <th class="py-3 px-2 text-center">P</th>
+                                        <th class="py-3 px-2 text-center">GF</th>
+                                        <th class="py-3 px-2 text-center">GC</th>
+                                        <th class="py-3 px-2 text-center">DG</th>
+                                        <th class="py-3 px-3 text-center font-bold text-white">Pts</th>
+                                        <th class="py-3 px-4 text-center">Últimos 5</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5 font-medium">
+                                    ${getData().liga.standings.map(item => {
+                                        const isU = item.isU;
+                                        let zoneColor = 'bg-transparent';
+                                        if (item.zone === 'libertadores') zoneColor = 'bg-blue-500';
+                                        else if (item.zone === 'sudamericana') zoneColor = 'bg-cyan-400';
+                                        else if (item.zone === 'descenso') zoneColor = 'bg-red-500';
+
+                                        return `
+                                            <tr class="${isU ? 'glass-panel-highlight font-bold text-white scale-[1.01]' : 'hover:bg-white/5 transition-colors text-gray-300'} relative">
+                                                <td class="py-3 px-3 text-center relative">
+                                                    <div class="absolute left-0 top-0 bottom-0 w-1 ${zoneColor}"></div>
+                                                    <span class="${isU ? 'text-white font-extrabold text-sm' : 'text-gray-400'}">${item.pos}</span>
+                                                </td>
+                                                <td class="py-3 px-4 flex items-center space-x-2.5">
+                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0 ${isU ? 'drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]' : ''}">
+                                                        ${(() => {
+                                                            const src = logoFor(item.code);
+                                                            return src
+                                                                ? `<img src="${src}" alt="${item.name}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
+                                                                     <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}" style="display:none;">${item.code}</div>`
+                                                                : `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}">${item.code}</div>`;
+                                                        })()}
+                                                    </div>
+                                                    <span class="${isU ? 'text-white text-sm font-black tracking-wide' : 'font-semibold'}">${item.name}</span>
+                                                </td>
+                                                <td class="py-3 px-2 text-center">${item.pj}</td>
+                                                <td class="py-3 px-2 text-center">${item.g}</td>
+                                                <td class="py-3 px-2 text-center">${item.e}</td>
+                                                <td class="py-3 px-2 text-center">${item.p}</td>
+                                                <td class="py-3 px-2 text-center opacity-80">${item.gf}</td>
+                                                <td class="py-3 px-2 text-center opacity-80">${item.gc}</td>
+                                                <td class="py-3 px-2 text-center font-semibold ${item.dg > 0 ? 'text-emerald-400' : item.dg < 0 ? 'text-red-400' : 'text-gray-400'}">
+                                                    ${item.dg > 0 ? '+' + item.dg : item.dg}
+                                                </td>
+                                                <td class="py-3 px-3 text-center font-extrabold text-sm ${isU ? 'text-yellow-300' : 'text-white'}">${item.pts}</td>
+                                                <td class="py-3 px-4">
+                                                    <div class="flex items-center justify-center space-x-1">
+                                                        ${item.last5.map(res => {
+                                                            if (res === 'G') {
+                                                                return `<span class="w-5 h-5 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Victoria">✓</span>`;
+                                                            } else if (res === 'P') {
+                                                                return `<span class="w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Derrota">✕</span>`;
+                                                            } else {
+                                                                return `<span class="w-5 h-5 rounded-full bg-gray-500/80 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Empate">-</span>`;
+                                                            }
+                                                        }).join('')}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-around gap-2 text-[11px] text-gray-400" style="--i:2">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                            <span>Copa Libertadores</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            <span>Copa Sudamericana</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                            <span>Zona Descenso</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMatches() {
+            const d = getData();
+            const next = d.liga.next_match;
+            const results = d.liga.recent_results;
+            return `
+                <div class="tab-content space-y-4">
+                    <!-- Next Match Highlight -->
+                    <div class="glass-panel-highlight p-5 rounded-3xl relative overflow-hidden pressable" style="--i:0">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> ${next.status || 'PRÓXIMO PARTIDO'}
+                            </span>
+                            <span class="text-xs text-gray-200 font-medium">${next.competition}</span>
+                        </div>
+                        <div class="grid grid-cols-3 items-center text-center my-2">
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 flex items-center justify-center drop-shadow-[0_0_8px_rgba(212,175,55,0.45)]">
+                                    <img src="${logoFor(next.home_code)}" alt="${next.home_name}" class="w-14 h-14 object-contain" onerror="this.style.display='none'"/>
+                                </div>
+                                <span class="text-sm font-bold mt-2">${next.home_name}</span>
+                            </div>
+                            <div>
+                                <span class="text-2xl font-black text-yellow-300">${next.time}</span>
+                                <span class="block text-[11px] text-gray-200 font-semibold mt-1">${next.venue}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 flex items-center justify-center">
+                                    <img src="${logoFor(next.away_code)}" alt="${next.away_name}" class="w-14 h-14 object-contain" onerror="this.style.display='none'"/>
+                                </div>
+                                <span class="text-sm font-bold mt-2">${next.away_name}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                            <span class="text-emerald-300 font-medium flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Partido Confirmado
+                            </span>
+                            <a href="https://www.google.com/search?q=${encodeURIComponent(next.home_name + ' vs ' + next.away_name + ' 2026')}" target="_blank" class="px-3 py-1 rounded-xl bg-white/20 hover:bg-white/30 font-semibold text-white transition-all flex items-center">
+                                Buscar noticias en Google
+                                <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Recent Results -->
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:1">
+                        <h3 class="text-sm font-bold text-gray-300 tracking-wide uppercase px-1">Últimos Resultados</h3>
+                        <div class="space-y-2">
+                            ${results.map(res => `
+                                <div class="pressable flex items-center justify-between p-3 rounded-2xl bg-slate-800/50 border border-white/5">
+                                    <span class="text-xs text-gray-400 w-16">${res.date}</span>
+                                    <div class="flex items-center space-x-2.5">
+                                        <img src="${logoFor(res.hCode)}" alt="${res.home}" class="w-5 h-5 object-contain shrink-0" loading="lazy" onerror="this.style.display='none'"/>
+                                        <span class="text-xs font-semibold ${res.home === 'U. de Chile' ? 'text-blue-400 font-bold' : 'text-gray-300'}">${res.home}</span>
+                                        <span class="px-2.5 py-0.5 rounded-lg bg-black/40 font-mono font-bold text-sm border border-white/10 ${res.win ? 'text-emerald-400' : res.draw ? 'text-yellow-400' : 'text-red-400'}">${res.hScore} - ${res.aScore}</span>
+                                        <span class="text-xs font-semibold ${res.away === 'U. de Chile' ? 'text-blue-400 font-bold' : 'text-gray-300'}">${res.away}</span>
+                                        <img src="${logoFor(res.aCode)}" alt="${res.away}" class="w-5 h-5 object-contain shrink-0" loading="lazy" onerror="this.style.display='none'"/>
+                                    </div>
+                                    <span class="w-6 text-center text-xs font-bold ${res.win ? 'text-emerald-400' : res.draw ? 'text-gray-400' : 'text-red-400'}">${res.win ? 'G' : res.draw ? 'E' : 'P'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRoster() {
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-4 rounded-3xl" style="--i:0">
+                        <h2 class="text-xl font-bold text-white">Plantel Oficial 2026</h2>
+                        <p class="text-xs text-gray-400">Club Universidad de Chile</p>
+                    </div>
+
+                    ${rosterData.map((cat, idx) => `
+                        <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:${idx + 1}">
+                            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">${cat.category}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                ${cat.players.map(p => `
+                                    <div class="pressable flex items-center justify-between p-2.5 rounded-2xl bg-slate-800/40 border border-white/5">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-xl bg-uchile-blue border border-uchile-gold flex items-center justify-center font-bold text-xs text-white">
+                                                ${p.num}
+                                            </div>
+                                            <span class="font-semibold text-sm text-gray-100">${p.name}</span>
+                                        </div>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/10 text-gray-300 border border-white/10">${p.status}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // Vista Competiciones: sub-tabs para Pre-Libertadores,
+        // Copa Libertadores, Copa Sudamericana y Supercopa de Chile
+        // ============================================================
+        function renderCompeticiones() {
+            const comps = getData().competiciones;
+            const tabs = [
+                { id: 'prelibertadores', label: 'Pre-Libertadores' },
+                { id: 'libertadores',    label: 'Copa Libertadores' },
+                { id: 'sudamericana',    label: 'Copa Sudamericana' },
+                { id: 'supercopa',       label: 'Supercopa Chile' }
+            ];
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-4 rounded-3xl" style="--i:0">
+                        <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Competiciones 2026</span>
+                        <h2 class="text-xl font-bold text-white mt-1">Copas Nacionales e Internacionales</h2>
+                    </div>
+
+                    <!-- Sub-tab selector (scroll horizontal Apple-style) -->
+                    <div class="glass-panel p-2 rounded-2xl" style="--i:1">
+                        <div class="flex gap-1 overflow-x-auto no-scrollbar">
+                            ${tabs.map(t => `
+                                <button onclick="setCompetition('${t.id}')" class="pressable flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${currentCompetition === t.id ? 'bg-uchile-blue text-white border border-uchile-gold shadow-md' : 'text-gray-400 border border-transparent'}">
+                                    ${t.label}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="competition-content" style="--i:2">
+                        ${renderCompetitionDetail(currentCompetition)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCompetitionDetail(comp) {
+            const c = getData().competiciones[comp];
+            if (!c) return '';
+            // Render específico para cada tipo de torneo
+            if (comp === 'prelibertadores') return renderPreLibertadores(c);
+            if (comp === 'libertadores')    return renderLibertadores(c);
+            if (comp === 'sudamericana')    return renderSudamericana(c);
+            if (comp === 'supercopa')       return renderSupercopa(c);
+            return '';
+        }
+
+        function renderTeamChip(name, code, motivo, sizeClass = 'w-9 h-9') {
+            return `
+                <div class="flex items-center space-x-3 p-2.5 rounded-2xl bg-slate-800/40 border border-white/5">
+                    <div class="${sizeClass} flex items-center justify-center shrink-0">
+                        <img src="${logoFor(code)}" alt="${name}" class="${sizeClass} object-contain" onerror="this.style.display='none'"/>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-sm text-gray-100 truncate">${name}</p>
+                        <p class="text-[10px] text-gray-400 truncate">${motivo}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFixtureRow(f) {
+            const jugado = f.jugado !== false && f.hScore !== null;
+            const score = jugado
+                ? `${f.hScore} - ${f.aScore}`
+                : 'vs';
+            return `
+                <div class="pressable flex items-center justify-between p-3 rounded-2xl bg-slate-800/50 border border-white/5">
+                    <span class="text-xs text-gray-400 w-24 truncate">${f.fecha}</span>
+                    <div class="flex items-center space-x-2.5">
+                        <img src="${logoFor(f.hCode)}" alt="" class="w-5 h-5 object-contain shrink-0" onerror="this.style.display='none'"/>
+                        <span class="text-xs font-semibold text-gray-300 truncate max-w-[80px]">${f.home}</span>
+                        <span class="px-2.5 py-0.5 rounded-lg bg-black/40 font-mono font-bold text-sm border border-white/10 ${jugado ? 'text-emerald-400' : 'text-gray-500'}">${score}</span>
+                        <span class="text-xs font-semibold text-gray-300 truncate max-w-[80px]">${f.away}</span>
+                        <img src="${logoFor(f.aCode)}" alt="" class="w-5 h-5 object-contain shrink-0" onerror="this.style.display='none'"/>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPreLibertadores(c) {
+            return `
+                <div class="glass-panel p-4 rounded-3xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-white">${c.nombre}</h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">${c.estado}</span>
+                    </div>
+                    <p class="text-xs text-gray-400">${c.descripcion}</p>
+                    <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-2">Equipos clasificados</h4>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${c.equipos.map(e => renderTeamChip(e.name, e.code, e.motivo)).join('')}
+                    </div>
+                    <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-2">Fixture</h4>
+                    <div class="space-y-2">
+                        ${c.fixtures.map(f => renderFixtureRow(f)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLibertadores(c) {
+            return `
+                <div class="glass-panel p-4 rounded-3xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-white">${c.nombre}</h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">${c.estado}</span>
+                    </div>
+                    <p class="text-xs text-gray-400">${c.descripcion}</p>
+                    <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-2">Equipos chilenos clasificados</h4>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${c.equipos_chilenos.map(e => renderTeamChip(e.name, e.code, e.motivo)).join('')}
+                    </div>
+                    ${c.grupo_uch ? `
+                        <div class="mt-3 p-3 rounded-2xl glass-panel-highlight">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-uchile-gold uppercase tracking-wider">U. de Chile — Grupo ${c.grupo_uch.grupo}</span>
+                                <span class="text-xs text-gray-200">${c.fase_actual}</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 text-center">
+                                <div><p class="text-[10px] text-gray-300">Posición</p><p class="text-xl font-black text-white">${c.grupo_uch.posicion}°</p></div>
+                                <div><p class="text-[10px] text-gray-300">PJ</p><p class="text-xl font-black text-white">${c.grupo_uch.pj}</p></div>
+                                <div><p class="text-[10px] text-gray-300">Pts</p><p class="text-xl font-black text-yellow-300">${c.grupo_uch.pts}</p></div>
+                                <div><p class="text-[10px] text-gray-300">DG</p><p class="text-xl font-black text-emerald-300">+${c.grupo_uch.dg}</p></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderSudamericana(c) {
+            return `
+                <div class="glass-panel p-4 rounded-3xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-white">${c.nombre}</h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${c.estado}</span>
+                    </div>
+                    <p class="text-xs text-gray-400">${c.descripcion}</p>
+                    <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-2">Equipos chilenos clasificados</h4>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${c.equipos_chilenos.map(e => renderTeamChip(e.name, e.code, e.motivo)).join('')}
+                    </div>
+                    <div class="mt-3 p-3 rounded-2xl bg-slate-800/40 border border-white/5">
+                        <p class="text-xs text-gray-400">Fase actual:</p>
+                        <p class="text-sm font-bold text-white mt-1">${c.fase_actual}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSupercopa(c) {
+            return `
+                <div class="glass-panel p-4 rounded-3xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-white">${c.nombre}</h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${c.estado}</span>
+                    </div>
+                    <p class="text-xs text-gray-400">${c.descripcion}</p>
+                    <h4 class="text-xs font-bold text-uchile-gold uppercase tracking-wider mt-2">Campeón</h4>
+                    <div class="p-3 rounded-2xl glass-panel-highlight flex items-center space-x-3">
+                        <img src="${logoFor(c.campeon.code)}" alt="" class="w-12 h-12 object-contain" onerror="this.style.display='none'"/>
+                        <div>
+                            <p class="text-base font-black text-white">${c.campeon.name}</p>
+                            <p class="text-xs text-uchile-gold font-semibold">🏆 Campeón Supercopa 2026</p>
+                        </div>
+                    </div>
+                    <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-2">Semifinales</h4>
+                    <div class="space-y-2">
+                        ${c.semifinales.map(f => renderFixtureRow({...f, jugado: true})).join('')}
+                    </div>
+                    <h4 class="text-xs font-bold text-uchile-gold uppercase tracking-wider mt-2">Final</h4>
+                    <div class="pressable flex items-center justify-between p-3 rounded-2xl bg-slate-800/50 border border-uchile-gold/30">
+                        <span class="text-xs text-gray-400 w-24">Final</span>
+                        <div class="flex items-center space-x-2.5">
+                            <img src="${logoFor(c.final.hCode)}" alt="" class="w-6 h-6 object-contain shrink-0" onerror="this.style.display='none'"/>
+                            <span class="text-xs font-semibold text-white">${c.final.home}</span>
+                            <span class="px-2.5 py-0.5 rounded-lg bg-black/40 font-mono font-bold text-sm border border-white/10 text-emerald-400">0 (8)</span>
+                            <span class="text-xs text-gray-400">—</span>
+                            <span class="px-2.5 py-0.5 rounded-lg bg-black/40 font-mono font-bold text-sm border border-white/10 text-red-400">0 (7)</span>
+                            <span class="text-xs font-semibold text-white">${c.final.away}</span>
+                            <img src="${logoFor(c.final.aCode)}" alt="" class="w-6 h-6 object-contain shrink-0" onerror="this.style.display='none'"/>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // Vista Estadísticas: goleadores, asistencias, vallas invictas
+        // ============================================================
+        function renderEstadisticas() {
+            const e = getData().estadisticas;
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-4 rounded-3xl" style="--i:0">
+                        <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Estadísticas</span>
+                        <h2 class="text-xl font-bold text-white mt-1">Líderes individuales 2026</h2>
+                    </div>
+
+                    ${renderStatTable({
+                        title: 'Goleadores',
+                        icon: '⚽',
+                        headers: ['Pos', 'Jugador', 'Equipo', 'Goles', 'PJ'],
+                        rows: (e.goleadores || []).map(g => [
+                            `<span class="font-bold ${g.rank <= 3 ? 'text-yellow-300' : 'text-gray-400'}">${g.rank}</span>`,
+                            `<span class="font-semibold text-white">${g.name}</span>`,
+                            `<span class="flex items-center space-x-1.5"><img src="${logoFor(g.team_code)}" alt="" class="w-4 h-4 object-contain" onerror="this.style.display='none'"/><span class="text-gray-300">${g.team_code || '—'}</span></span>`,
+                            `<span class="font-extrabold text-emerald-400">${g.goles}</span>`,
+                            `<span class="text-gray-400">${g.pj ?? '—'}</span>`
+                        ]),
+                        idx: 1
+                    })}
+
+                    ${renderStatTable({
+                        title: 'Asistencias',
+                        icon: '🎯',
+                        headers: ['Pos', 'Jugador', 'Equipo', 'Asist.', 'PJ'],
+                        rows: (e.asistencias || []).map(a => [
+                            `<span class="font-bold ${a.rank <= 3 ? 'text-yellow-300' : 'text-gray-400'}">${a.rank}</span>`,
+                            `<span class="font-semibold text-white">${a.name}</span>`,
+                            `<span class="flex items-center space-x-1.5"><img src="${logoFor(a.team_code)}" alt="" class="w-4 h-4 object-contain" onerror="this.style.display='none'"/><span class="text-gray-300">${a.team_code || '—'}</span></span>`,
+                            `<span class="font-extrabold text-blue-400">${a.asistencias}</span>`,
+                            `<span class="text-gray-400">${a.pj ?? '—'}</span>`
+                        ]),
+                        idx: 2
+                    })}
+
+                    ${(e.vallas_invictas && e.vallas_invictas.length) ? renderStatTable({
+                        title: 'Vallas Invictas',
+                        icon: '🧤',
+                        headers: ['Pos', 'Portero', 'Equipo', 'Vallas', 'PJ'],
+                        rows: e.vallas_invictas.map(v => [
+                            `<span class="font-bold ${v.rank <= 3 ? 'text-yellow-300' : 'text-gray-400'}">${v.rank}</span>`,
+                            `<span class="font-semibold text-white">${v.name}</span>`,
+                            `<span class="flex items-center space-x-1.5"><img src="${logoFor(v.team_code)}" alt="" class="w-4 h-4 object-contain" onerror="this.style.display='none'"/><span class="text-gray-300">${v.team_code || '—'}</span></span>`,
+                            `<span class="font-extrabold text-purple-400">${v.vallas}</span>`,
+                            `<span class="text-gray-400">${v.pj ?? '—'}</span>`
+                        ]),
+                        idx: 3
+                    }) : ''}
+
+                    <div class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-center gap-1 text-[10px] text-gray-500" style="--i:4">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Datos: Wikipedia (CC BY-SA) — Liga de Primera 2026</span>
+                        </div>
+                        ${getData().meta && getData().meta.ultima_actualizacion ? `
+                            <span class="text-gray-600">Actualizado: ${new Date(getData().meta.ultima_actualizacion).toLocaleString('es-CL')}</span>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStatTable({ title, icon, headers, rows, idx }) {
+            return `
+                <div class="glass-panel rounded-3xl overflow-hidden border border-white/10" style="--i:${idx}">
+                    <div class="p-3 border-b border-white/10">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="text-base">${icon}</span>
+                            ${title}
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-900/90 text-gray-400 font-semibold uppercase tracking-wider text-[10px]">
+                                    ${headers.map(h => `<th class="py-2.5 px-3">${h}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                ${rows.map(r => `
+                                    <tr class="hover:bg-white/5 transition-colors">
+                                        ${r.map(c => `<td class="py-2.5 px-3">${c}</td>`).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCulture() {
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-5 rounded-3xl space-y-2" style="--i:0">
+                        <span class="text-xs uppercase tracking-widest text-uchile-gold font-bold">Mística y Gloria</span>
+                        <h2 class="text-xl font-bold text-white">Historia del Romántico Viajero</h2>
+                        <p class="text-xs text-gray-300 leading-relaxed">
+                            Fundado el <strong class="text-white">24 de mayo de 1927</strong>. Cuna de memorables gestas como el legendario <strong class="text-blue-400">Ballet Azul</strong> de los años 60 y la histórica conquista invicta de la <strong class="text-yellow-400">Copa Sudamericana 2011</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Cánticos de la Hinchada -->
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:1">
+                        <h3 class="text-sm font-bold text-white flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
+                            Cánticos de Los de Abajo
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="pressable p-3 rounded-2xl bg-slate-800/50 border border-white/5 space-y-1">
+                                <h4 class="text-xs font-bold text-blue-400">"El Himno de la U"</h4>
+                                <p class="text-xs italic text-gray-300">"Mágica azul, tu estrella es la luz que guía a la victoria... ¡Universidad de Chile!"</p>
+                            </div>
+                            <div class="pressable p-3 rounded-2xl bg-slate-800/50 border border-white/5 space-y-1">
+                                <h4 class="text-xs font-bold text-red-400">"Te Sigo a Todas Partes"</h4>
+                                <p class="text-xs italic text-gray-300">"No importa en qué cancha jugues, a la U la sigo a todas partes con el corazón..."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // View Navigation Handler (with Apple spring feedback)
+        function switchTab(tab) {
+            if (tab === currentTab) return;
+            currentTab = tab;
+
+            const content = document.getElementById('app-content');
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-400');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-400');
+                activeBtn.classList.add('text-blue-400');
+            }
+
+            if (tab === 'tabla') content.innerHTML = renderStandings();
+            else if (tab === 'partidos') content.innerHTML = renderMatches();
+            else if (tab === 'plantel') content.innerHTML = renderRoster();
+            else if (tab === 'competiciones') content.innerHTML = renderCompeticiones();
+            else if (tab === 'estadisticas') content.innerHTML = renderEstadisticas();
+            else if (tab === 'cultura') content.innerHTML = renderCulture();
+
+            // Apply staggered child indices for entrance animation
+            const children = content.querySelectorAll('.tab-content > *');
+            children.forEach((el, i) => {
+                if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', i);
+            });
+
+            // Spring bounce on the active nav button (Apple §4 — momentum drives overshoot)
+            if (window.Motion && activeBtn) {
+                try {
+                    window.Motion.animate(
+                        activeBtn,
+                        { transform: ['scale(1)', 'scale(0.92)', 'scale(1)'] },
+                        { duration: 0.4, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
+                    );
+                } catch(e) { /* fail silently */ }
+            }
+        }
+
+        // Cambia el sub-tab dentro de la vista Competiciones
+        function setCompetition(comp) {
+            if (comp === currentCompetition) return;
+            currentCompetition = comp;
+            const detail = document.getElementById('competition-content');
+            if (detail) {
+                detail.innerHTML = renderCompetitionDetail(comp);
+                // Spring fade-in for the new detail
+                if (window.Motion) {
+                    try {
+                        window.Motion.animate(
+                            detail,
+                            { opacity: [0, 1], transform: ['translateY(8px)', 'translateY(0)'] },
+                            { duration: 0.45, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+                        );
+                    } catch(e) { /* fail silently */ }
+                }
+            }
+            // Re-render to update the active state on sub-tab buttons
+            document.getElementById('app-content').innerHTML = renderCompeticiones();
+        }
+
+        // ============================================================
+        // Carga dinámica de datos desde data.json (generado por el
+        // scraper Python + GitHub Action). Si fetch falla (ej: abriendo
+        // el archivo local con file://), usa FALLBACK_DATA.
+        // ============================================================
+        async function loadData() {
+            try {
+                const res = await fetch('data.json', { cache: 'no-store' });
+                if (!res.ok) throw new Error('data.json no disponible');
+                appData = await res.json();
+                console.log('[Mi UChile] Datos cargados desde data.json', appData.meta);
+            } catch (err) {
+                console.warn('[Mi UChile] Usando datos de fallback (offline o data.json no encontrado):', err.message);
+                appData = null;  // getData() usará FALLBACK_DATA
+            }
+        }
+
+        // Initialize App
+        window.onload = async function() {
+            await loadData();
+            switchTab('tabla');
+        };
+    </script>
+</body>
+</html>

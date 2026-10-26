@@ -1,0 +1,609 @@
+{
+  "liga": {
+    "standings": [
+      {
+        "name": "Colo-Colo",
+        "code": "CC",
+        "pj": 25,
+        "g": 17,
+        "e": 4,
+        "p": 4,
+        "gf": 51,
+        "gc": 28,
+        "dg": 23,
+        "pts": 55,
+        "zone": "libertadores",
+        "notes": "Clasifica como campeón a la Copa Libertadores",
+        "isU": false,
+        "pos": 1
+      },
+      {
+        "name": "Universidad de Chile",
+        "code": "UCH",
+        "pj": 24,
+        "g": 13,
+        "e": 6,
+        "p": 5,
+        "gf": 41,
+        "gc": 19,
+        "dg": 22,
+        "pts": 45,
+        "zone": "libertadores",
+        "notes": "Clasifica a la Copa Libertadores",
+        "isU": true,
+        "pos": 2
+      },
+      {
+        "name": "Universidad Católica",
+        "code": "UC",
+        "pj": 24,
+        "g": 13,
+        "e": 3,
+        "p": 8,
+        "gf": 51,
+        "gc": 36,
+        "dg": 15,
+        "pts": 42,
+        "zone": "libertadores",
+        "notes": "Clasifica a la Serie Pre-Libertadores",
+        "isU": false,
+        "pos": 3
+      },
+      {
+        "name": "Everton",
+        "code": "EVE",
+        "pj": 24,
+        "g": 11,
+        "e": 6,
+        "p": 7,
+        "gf": 40,
+        "gc": 27,
+        "dg": 13,
+        "pts": 39,
+        "zone": "sudamericana",
+        "notes": "Clasifica a la Copa Sudamericana",
+        "isU": false,
+        "pos": 4
+      },
+      {
+        "name": "Palestino",
+        "code": "PAL",
+        "pj": 25,
+        "g": 11,
+        "e": 5,
+        "p": 9,
+        "gf": 39,
+        "gc": 36,
+        "dg": 3,
+        "pts": 38,
+        "zone": "sudamericana",
+        "notes": "Clasifica a la Copa Sudamericana",
+        "isU": false,
+        "pos": 5
+      },
+      {
+        "name": "Deportes Limache",
+        "code": "LIM",
+        "pj": 25,
+        "g": 11,
+        "e": 4,
+        "p": 10,
+        "gf": 46,
+        "gc": 37,
+        "dg": 9,
+        "pts": 37,
+        "zone": "sudamericana",
+        "notes": "Clasifica a la Copa Sudamericana",
+        "isU": false,
+        "pos": 6
+      },
+      {
+        "name": "Huachipato",
+        "code": "HUA",
+        "pj": 25,
+        "g": 10,
+        "e": 5,
+        "p": 10,
+        "gf": 35,
+        "gc": 40,
+        "dg": -5,
+        "pts": 35,
+        "zone": "sudamericana",
+        "notes": "Clasifica a la Copa Sudamericana",
+        "isU": false,
+        "pos": 7
+      },
+      {
+        "name": "Ñublense",
+        "code": "ÑUB",
+        "pj": 25,
+        "g": 9,
+        "e": 8,
+        "p": 8,
+        "gf": 30,
+        "gc": 38,
+        "dg": -8,
+        "pts": 35,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 8
+      },
+      {
+        "name": "Deportes La Serena",
+        "code": "SER",
+        "pj": 25,
+        "g": 8,
+        "e": 9,
+        "p": 8,
+        "gf": 39,
+        "gc": 42,
+        "dg": -3,
+        "pts": 33,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 9
+      },
+      {
+        "name": "Coquimbo Unido",
+        "code": "COQ",
+        "pj": 25,
+        "g": 9,
+        "e": 5,
+        "p": 11,
+        "gf": 37,
+        "gc": 36,
+        "dg": 1,
+        "pts": 32,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 10
+      },
+      {
+        "name": "Deportes Concepción",
+        "code": "CON",
+        "pj": 25,
+        "g": 9,
+        "e": 5,
+        "p": 11,
+        "gf": 27,
+        "gc": 30,
+        "dg": -3,
+        "pts": 32,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 11
+      },
+      {
+        "name": "Audax Italiano",
+        "code": "AUD",
+        "pj": 24,
+        "g": 7,
+        "e": 8,
+        "p": 9,
+        "gf": 27,
+        "gc": 32,
+        "dg": -5,
+        "pts": 29,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 12
+      },
+      {
+        "name": "O'Higgins",
+        "code": "OHI",
+        "pj": 25,
+        "g": 8,
+        "e": 4,
+        "p": 13,
+        "gf": 29,
+        "gc": 39,
+        "dg": -10,
+        "pts": 28,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 13
+      },
+      {
+        "name": "Cobresal",
+        "code": "CSL",
+        "pj": 25,
+        "g": 7,
+        "e": 5,
+        "p": 13,
+        "gf": 36,
+        "gc": 46,
+        "dg": -10,
+        "pts": 26,
+        "zone": null,
+        "notes": "",
+        "isU": false,
+        "pos": 14
+      },
+      {
+        "name": "Universidad de Concepción",
+        "code": "UDC",
+        "pj": 25,
+        "g": 6,
+        "e": 5,
+        "p": 14,
+        "gf": 18,
+        "gc": 41,
+        "dg": -23,
+        "pts": 23,
+        "zone": "descenso",
+        "notes": "Desciende a la Liga de Ascenso",
+        "isU": false,
+        "pos": 15
+      },
+      {
+        "name": "Unión La Calera",
+        "code": "ULC",
+        "pj": 25,
+        "g": 5,
+        "e": 6,
+        "p": 14,
+        "gf": 23,
+        "gc": 42,
+        "dg": -19,
+        "pts": 21,
+        "zone": "descenso",
+        "notes": "Desciende a la Liga de Ascenso",
+        "isU": false,
+        "pos": 16
+      }
+    ],
+    "recent_results": [
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 6,
+        "away": "Ñublense",
+        "aCode": "ÑUB",
+        "aScore": 0,
+        "date": "Reciente"
+      },
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 4,
+        "away": "Coquimbo Unido",
+        "aCode": "COQ",
+        "aScore": 2,
+        "date": "Reciente"
+      },
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 2,
+        "away": "Palestino",
+        "aCode": "PAL",
+        "aScore": 1,
+        "date": "Reciente"
+      },
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 2,
+        "away": "Huachipato",
+        "aCode": "HUA",
+        "aScore": 0,
+        "date": "Reciente"
+      },
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 2,
+        "away": "Deportes Concepción",
+        "aCode": "CON",
+        "aScore": 1,
+        "date": "Reciente"
+      },
+      {
+        "home": "'''Universidad de Chile",
+        "hCode": "UCH",
+        "hScore": 2,
+        "away": "O'Higgins",
+        "aCode": "OHI",
+        "aScore": 0,
+        "date": "Reciente"
+      }
+    ],
+    "next_match": {
+      "home_code": "UCH",
+      "away_code": "EVE",
+      "home_name": "U. de Chile",
+      "away_name": "Everton",
+      "time": "18:00",
+      "venue": "Estadio Nacional",
+      "status": "PRÓXIMO PARTIDO",
+      "competition": "Liga de Primera 2026"
+    }
+  },
+  "competiciones": {
+    "prelibertadores": {
+      "nombre": "Serie Pre-Libertadores 2026",
+      "descripcion": "La definición del ''Chile 4'' Para la Copa Libertadores 2027, la disputarán el equipo que termine en el  lugar de la Liga de Primera 2026, contra el equipo que se coronará campeón de la Copa Chile 2026, en partidos de ida y vuelta. El ganador de la definición, obtendrá el cupo de ''Chile 4'' para la",
+      "equipos": [
+        {
+          "name": "Universidad Católica",
+          "code": "UC",
+          "motivo": "3° Liga de Primera"
+        }
+      ],
+      "fixtures": [
+        {
+          "fecha": "Semifinal 1",
+          "home": "Universidad Católica",
+          "hCode": "UC",
+          "away": "Por definir",
+          "aCode": null,
+          "hScore": null,
+          "aScore": null,
+          "jugado": false
+        },
+        {
+          "fecha": "Semifinal 2",
+          "home": "Por definir",
+          "hCode": null,
+          "away": "Por definir",
+          "aCode": null,
+          "hScore": null,
+          "aScore": null,
+          "jugado": false
+        },
+        {
+          "fecha": "Final",
+          "home": "Ganador S1",
+          "hCode": null,
+          "away": "Ganador S2",
+          "aCode": null,
+          "hScore": null,
+          "aScore": null,
+          "jugado": false
+        }
+      ],
+      "estado": "Por disputarse"
+    },
+    "libertadores": {
+      "nombre": "Copa Libertadores 2027",
+      "descripcion": "!width=200|Clasificado",
+      "equipos_chilenos": [
+        {
+          "name": "Colo-Colo",
+          "code": "CC",
+          "motivo": "Chile 1 — Campeón Liga de Primera"
+        },
+        {
+          "name": "Universidad de Chile",
+          "code": "UCH",
+          "motivo": "Chile 2 — Subcampeón Liga de Primera"
+        }
+      ],
+      "estado": "Próxima edición — clasificando",
+      "fase_actual": "Clasificación"
+    },
+    "sudamericana": {
+      "nombre": "Copa Sudamericana 2027",
+      "descripcion": "!width=200|Clasificado",
+      "equipos_chilenos": [
+        {
+          "name": "Everton",
+          "code": "EVE",
+          "motivo": "4° Liga de Primera"
+        },
+        {
+          "name": "Palestino",
+          "code": "PAL",
+          "motivo": "5° Liga de Primera"
+        },
+        {
+          "name": "Deportes Limache",
+          "code": "LIM",
+          "motivo": "6° Liga de Primera"
+        }
+      ],
+      "estado": "Próxima edición — clasificando",
+      "fase_actual": "Clasificación"
+    },
+    "supercopa": {
+      "nombre": "Supercopa de Chile 2026",
+      "descripcion": "!width=200|Clasificado",
+      "campeon": {
+        "name": "Coquimbo Unido",
+        "code": "COQ"
+      },
+      "subcampeon": {
+        "name": "Universidad Católica",
+        "code": "UC"
+      },
+      "semifinales": [
+        {
+          "home": "Huachipato",
+          "hCode": "HUA",
+          "hScore": 2,
+          "away": "U. Católica",
+          "aCode": "UC",
+          "aScore": 4,
+          "ganador": "UC"
+        },
+        {
+          "home": "Coquimbo Unido",
+          "hCode": "COQ",
+          "hScore": 3,
+          "away": "Deportes Limache",
+          "aCode": "LIM",
+          "aScore": 2,
+          "ganador": "COQ"
+        }
+      ],
+      "final": {
+        "home": "Coquimbo Unido",
+        "hCode": "COQ",
+        "away": "U. Católica",
+        "aCode": "UC",
+        "hPen": 8,
+        "aPen": 7,
+        "ganador": "COQ"
+      },
+      "estado": "Finalizado — Campeón: Coquimbo Unido"
+    }
+  },
+  "estadisticas": {
+    "goleadores": [
+      {
+        "rank": 1,
+        "name": "Fernando Zampedri",
+        "team_code": "UC",
+        "goles": 25,
+        "pj": 22
+      },
+      {
+        "rank": 2,
+        "name": "Javier Correa",
+        "team_code": "CC",
+        "goles": 13,
+        "pj": 16
+      },
+      {
+        "rank": 3,
+        "name": "Daniel Castro",
+        "team_code": "LIM",
+        "goles": 13,
+        "pj": 23
+      },
+      {
+        "rank": 4,
+        "name": "Alan Medina",
+        "team_code": "EVE",
+        "goles": 12,
+        "pj": 24
+      },
+      {
+        "rank": 5,
+        "name": "Eduardo Vargas",
+        "team_code": "UCH",
+        "goles": 10,
+        "pj": 22
+      },
+      {
+        "rank": 6,
+        "name": "Lionel Altamirano",
+        "team_code": "HUA",
+        "goles": 10,
+        "pj": 25
+      },
+      {
+        "rank": 7,
+        "name": "Nelson Da Silva",
+        "team_code": "PAL",
+        "goles": 9,
+        "pj": 17
+      },
+      {
+        "rank": 8,
+        "name": "Sebastián Sáez",
+        "team_code": "ULC",
+        "goles": 9,
+        "pj": 19
+      },
+      {
+        "rank": 9,
+        "name": "Nicolás Johansen",
+        "team_code": "COQ",
+        "goles": 9,
+        "pj": 23
+      },
+      {
+        "rank": 10,
+        "name": "Maximiliano Romero",
+        "team_code": "CC",
+        "goles": 8,
+        "pj": 21
+      }
+    ],
+    "asistencias": [
+      {
+        "rank": 1,
+        "name": "Kevin Méndez",
+        "team_code": "ULC",
+        "asistencias": 9,
+        "pj": 20
+      },
+      {
+        "rank": 2,
+        "name": "Jean Meneses",
+        "team_code": "LIM",
+        "asistencias": 9,
+        "pj": 24
+      },
+      {
+        "rank": 3,
+        "name": "Daniel Castro",
+        "team_code": "LIM",
+        "asistencias": 7,
+        "pj": 23
+      },
+      {
+        "rank": 4,
+        "name": "Jeisson Vargas",
+        "team_code": "SER",
+        "asistencias": 7,
+        "pj": 25
+      },
+      {
+        "rank": 5,
+        "name": "Marcelo Morales",
+        "team_code": "UCH",
+        "asistencias": 6,
+        "pj": 18
+      },
+      {
+        "rank": 6,
+        "name": "Juan Cornejo",
+        "team_code": "COQ",
+        "asistencias": 6,
+        "pj": 20
+      },
+      {
+        "rank": 7,
+        "name": "Cristián Cuevas",
+        "team_code": "UC",
+        "asistencias": 6,
+        "pj": 21
+      },
+      {
+        "rank": 8,
+        "name": "Matías Palavecino",
+        "team_code": "UC",
+        "asistencias": 6,
+        "pj": 21
+      },
+      {
+        "rank": 9,
+        "name": "Bryan Carvallo",
+        "team_code": "CSL",
+        "asistencias": 5,
+        "pj": 21
+      },
+      {
+        "rank": 10,
+        "name": "Mario Briceño",
+        "team_code": "HUA",
+        "asistencias": 5,
+        "pj": 22
+      }
+    ],
+    "vallas_invictas": []
+  },
+  "meta": {
+    "ultima_actualizacion": "2026-10-26T04:41:15.403689+00:00",
+    "fuente": "Wikipedia (CC BY-SA) — https://es.wikipedia.org/wiki/Liga_de_Primera_2026",
+    "temporada": "2026"
+  }
+}
