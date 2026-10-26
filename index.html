@@ -32,7 +32,15 @@
             root.style.fontSize = (16 * v / 100) + 'px';
             return v;
         };
-        window.applyTheme(); window.applyFontScale();
+        window.applyTopExtra = function (p) {
+            var v = parseFloat(p);
+            if (!isFinite(v)) v = parseFloat(g('uch-top', '28'));
+            if (!isFinite(v)) v = 28;
+            v = Math.max(0, Math.min(60, v));
+            root.style.setProperty('--top-extra', v + 'px');
+            return v;
+        };
+        window.applyTheme(); window.applyFontScale(); window.applyTopExtra();
         if (window.matchMedia) {
             var mq = matchMedia('(prefers-color-scheme: light)');
             var h = function () { if (g('uch-theme', 'dark') === 'auto') window.applyTheme(); };
@@ -268,7 +276,7 @@
         html.light { color-scheme: light; }
         body { padding-bottom: calc(8rem + env(safe-area-inset-bottom)); }
         /* La cabecera ahora respeta la isla / barra de estado del iPhone */
-        #app-header { padding-top: calc(env(safe-area-inset-top) + .75rem); }
+        #app-header { padding-top: calc(env(safe-area-inset-top) + var(--top-extra, 28px)); }
         /* Los textos en px de Tailwind también escalan con el tamaño de letra */
         .text-\[10px\] { font-size: .625rem !important; }
         .text-\[11px\] { font-size: .6875rem !important; }
@@ -1452,7 +1460,15 @@
             const r = document.getElementById('fs-range'); if (r && parseFloat(r.value) !== n) r.value = n;
         }
 
+        function setTopExtra(v) {
+            const n = window.applyTopExtra(v);
+            setPref('uch-top', n);
+            const o = document.getElementById('top-out'); if (o) o.textContent = Math.round(n) + ' px';
+        }
+
         function renderSettings() {
+            const topRaw = parseFloat(getPref('uch-top', '28'));
+            const topV = isFinite(topRaw) ? Math.round(topRaw) : 28;
             const theme = getPref('uch-theme', 'dark');
             const fs = Math.round(parseFloat(getPref('uch-fs', '100')) || 100);
             const themeOpts = [['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']];
@@ -1491,6 +1507,16 @@
                             <output id="fs-out" class="text-blue-400 font-bold tabular-nums">${fs}%</output>
                             <button type="button" onclick="setFontScale(100)" class="pressable px-4 py-2 rounded-xl text-xs font-bold bg-slate-800/60 border border-white/10 text-gray-200">Restablecer</button>
                         </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:3">
+                        <h3 class="text-sm font-bold text-white">Margen superior del banner</h3>
+                        <p class="text-xs text-gray-400">Baja o sube el banner con el escudo si lo ves muy pegado al reloj.</p>
+                        <div class="flex items-center gap-3">
+                            <input id="top-range" class="lg-range" type="range" min="0" max="60" step="2" value="${topV}" oninput="setTopExtra(this.value)">
+                            <output id="top-out" class="text-blue-400 font-bold tabular-nums w-14 text-right">${topV} px</output>
+                        </div>
+                        <button type="button" onclick="setTopExtra(28);document.getElementById('top-range').value=28" class="pressable w-full py-2.5 rounded-xl text-sm font-bold bg-slate-800/60 border border-white/10 text-gray-200">Restablecer</button>
                     </div>
 
                     <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:3">
