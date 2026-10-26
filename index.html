@@ -11,6 +11,35 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0B0F19">
+    <script>
+    /* Tema (claro/oscuro/auto) y tamaño de letra: se aplican antes de pintar para evitar parpadeos */
+    (function () {
+        var root = document.documentElement;
+        function g(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+        window.applyTheme = function (mode) {
+            var m = mode || g('uch-theme', 'dark');
+            var light = m === 'light' || (m === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+            root.classList.toggle('light', light);
+            root.classList.toggle('dark', !light);
+            var tc = document.querySelector('meta[name="theme-color"]');
+            if (tc) tc.setAttribute('content', light ? '#002B7A' : '#0B0F19');
+        };
+        window.applyFontScale = function (p) {
+            var v = parseFloat(p);
+            if (!isFinite(v)) v = parseFloat(g('uch-fs', '100'));
+            if (!isFinite(v)) v = 100;
+            v = Math.max(85, Math.min(140, v));
+            root.style.fontSize = (16 * v / 100) + 'px';
+            return v;
+        };
+        window.applyTheme(); window.applyFontScale();
+        if (window.matchMedia) {
+            var mq = matchMedia('(prefers-color-scheme: light)');
+            var h = function () { if (g('uch-theme', 'dark') === 'auto') window.applyTheme(); };
+            if (mq.addEventListener) mq.addEventListener('change', h);
+        }
+    })();
+    </script>
 
     <!-- Iconos de app (iOS home screen + Android + favicon) usando el logo de la U. de Chile -->
     <link rel="apple-touch-icon" sizes="512x512" href="logos/icon-512.png">
@@ -114,15 +143,6 @@
                 0 8px 32px 0 rgba(0, 43, 122, 0.37);
         }
 
-        .glass-nav {
-            background: rgba(11, 15, 25, 0.85);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow:
-                0 -1px 0 0 rgba(255, 255, 255, 0.06) inset,
-                0 -8px 24px -4px rgba(0, 0, 0, 0.3);
-        }
 
         /* §12: Vibrancy — text legible sobre backgrounds translúcidos */
         .glass-panel-highlight strong,
@@ -147,6 +167,7 @@
         /* ============================================
            §1 & §10: Press feedback — respond on pointer-down, instant
            ============================================ */
+        input, textarea { user-select: text; -webkit-user-select: text; font-size: 16px; }
         .pressable {
             transition: transform 0.4s var(--spring-easing);
             will-change: transform;
@@ -157,19 +178,6 @@
             transition: transform 100ms ease-out;
         }
 
-        /* Bottom nav — Apple spring + scale on press (§1, §4, §10) */
-        .nav-btn {
-            transition: transform 0.4s var(--spring-easing), color 0.3s ease;
-            will-change: transform;
-        }
-        .nav-btn:active {
-            transform: scale(0.92);
-            transition: transform 100ms ease-out;
-        }
-        .nav-btn.text-blue-400 svg {
-            transform: scale(1.08);
-            transition: transform 0.45s var(--spring-bounce);
-        }
 
         /* ============================================
            §3 & §8: Tab content entrance — hint in direction of motion (spring)
@@ -250,12 +258,124 @@
                 border-color: rgba(255, 255, 255, 0.35) !important;
             }
         }
+
+        /* ============================================
+           Tema, áreas seguras y tamaño de letra
+           ============================================ */
+        :root { --label2: #6b7280; --tint: #0A60FF; --card: #ffffff; }
+        html.dark { --label2: #98a2b3; --tint: #60A5FA; --card: #161e31; }
+        html { color-scheme: dark; -webkit-text-size-adjust: 100%; }
+        html.light { color-scheme: light; }
+        body { padding-bottom: calc(8rem + env(safe-area-inset-bottom)); }
+        /* La cabecera ahora respeta la isla / barra de estado del iPhone */
+        #app-header { padding-top: calc(env(safe-area-inset-top) + .75rem); }
+        /* Los textos en px de Tailwind también escalan con el tamaño de letra */
+        .text-\[10px\] { font-size: .625rem !important; }
+        .text-\[11px\] { font-size: .6875rem !important; }
+        .standings-table td, .standings-table th { overflow: hidden; }
+
+        /* ============================================
+           Modo claro
+           ============================================ */
+        html.light body { background: #F2F2F7 !important; color: #111827 !important; }
+        html.light .glass-panel {
+            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(0,0,0,.06);
+            border-top-color: rgba(255,255,255,.95);
+            box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px -10px rgba(0,0,0,.18);
+        }
+        html.light .text-white { color: #0B1220 !important; }
+        html.light [class*="text-gray-100"], html.light [class*="text-gray-200"], html.light [class*="text-gray-300"] { color: #1f2937 !important; }
+        html.light [class*="text-gray-400"], html.light [class*="text-gray-500"] { color: #667085 !important; }
+        html.light [class*="text-gray-600"] { color: #98a2b3 !important; }
+        html.light .text-blue-300, html.light .text-blue-400 { color: #1D4ED8 !important; }
+        html.light .text-red-400 { color: #DC2626 !important; }
+        html.light .text-emerald-300, html.light .text-emerald-400 { color: #047857 !important; }
+        html.light .text-yellow-300, html.light .text-yellow-400 { color: #B45309 !important; }
+        html.light .text-purple-400 { color: #7C3AED !important; }
+        html.light .text-cyan-300 { color: #0E7490 !important; }
+        html.light [class*="bg-slate-"] { background-color: rgba(255,255,255,.66) !important; }
+        html.light thead tr { background-color: rgba(0,0,0,.05) !important; }
+        html.light [class*="bg-black"] { background-color: rgba(0,0,0,.06) !important; }
+        html.light [class*="border-white"] { border-color: rgba(0,0,0,.08) !important; }
+        html.light [class*="divide-white"] > * { border-color: rgba(0,0,0,.07) !important; }
+        html.light .bg-uchile-blue.text-white, html.light .bg-uchile-blue .text-white { color: #fff !important; }
+        /* Lo que va sobre el degradado azul/rojo se mantiene claro */
+        html.light .glass-panel-highlight { color: #fff; }
+        html.light .glass-panel-highlight .text-white,
+        html.light .glass-panel-highlight [class*="text-gray-"] { color: #fff !important; }
+        html.light .glass-panel-highlight .text-yellow-300 { color: #fde047 !important; }
+        html.light .glass-panel-highlight .text-emerald-300,
+        html.light .glass-panel-highlight .text-emerald-400 { color: #6ee7b7 !important; }
+        html.light .glass-panel-highlight .text-uchile-gold { color: #D4AF37 !important; }
+        /* Cabecera: en claro se mantiene azul institucional (el reloj del iPhone sigue blanco) */
+        html.light #app-header { background: linear-gradient(135deg, rgba(0,43,122,.97), rgba(16,28,66,.97)); border-color: rgba(255,255,255,.12); }
+        html.light #app-header h1 { color: #fff !important; }
+        html.light #app-header p { color: rgba(255,255,255,.72) !important; }
+        html.light #app-header .hdr-badge { background: rgba(255,255,255,.16) !important; color: #fff !important; border-color: rgba(255,255,255,.28) !important; }
+
+        /* ───────── Tab bar · Liquid Glass ───────── */
+        :root {
+            --lg-glass: rgba(255,255,255,.46); --lg-ink: var(--tint); --lg-edge: rgba(0,0,0,.10);
+            --lg-sink: rgba(0,0,0,.16); --lg-sink2: rgba(0,0,0,.10); --lg-vig: rgba(0,0,0,.10); --lg-cast: rgba(0,0,0,.18);
+            --lg-blend: normal; --lg-ca-op: .6;
+        }
+        html.dark {
+            --lg-glass: rgba(30,30,33,.38); --lg-ink: var(--tint); --lg-edge: rgba(255,255,255,.14);
+            --lg-sink: rgba(0,0,0,.65); --lg-sink2: rgba(0,0,0,.45); --lg-vig: rgba(0,0,0,.38); --lg-cast: rgba(0,0,0,.4);
+            --lg-blend: screen; --lg-ca-op: 1;
+        }
+        .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 0 .75rem calc(env(safe-area-inset-bottom) + .5rem); pointer-events: none; }
+        .lg-bar {
+            position: relative; pointer-events: auto; max-width: 30rem; margin: 0 auto; height: 4.75rem; border-radius: 99px;
+            background: var(--lg-glass);
+            -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 .5px var(--lg-edge), 0 10px 30px var(--lg-cast);
+            will-change: transform; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
+        }
+        .lg-tabs { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(5, 1fr); padding: 4px; }
+        .tabbar button, .lg-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1875rem; padding: .375rem 0; color: var(--label2); font-size: .75rem; font-weight: 600; letter-spacing: .01em; border-radius: 2rem; }
+        .tabbar button { transition: transform 120ms ease-out; }
+        .tabbar button svg, .lg-tab svg { width: 1.75rem; height: 1.75rem; margin: 0; flex-shrink: 0; }
+        .lg-tab { pointer-events: none; }
+        .lg-main .lg-tab { color: var(--lg-ink); }
+        .lg-r .lg-tab { color: #ff2a45; }
+        .lg-b .lg-tab { color: #2a8bff; }
+        .lg-r, .lg-b { mix-blend-mode: var(--lg-blend); opacity: var(--lg-ca-op); }
+        .lg-lens {
+            position: absolute; left: 0; top: 4px; will-change: transform;
+            background: radial-gradient(closest-side at 50% 50%, rgba(255,255,255,.03) 55%, var(--lg-vig) 100%);
+            -webkit-backdrop-filter: brightness(.92) saturate(1.4); backdrop-filter: brightness(.92) saturate(1.4);
+            box-shadow:
+                inset 0 7px 9px -5px var(--lg-sink),
+                inset 0 -6px 8px -5px var(--lg-sink2),
+                inset 2px 0 2px -1px rgba(255,90,80,.35),
+                inset -2px 0 2px -1px rgba(80,150,255,.4),
+                inset 0 0 0 1px var(--lg-edge),
+                inset 0 1px 0 rgba(255,255,255,.85),
+                inset 0 -1px 0 rgba(255,255,255,.35),
+                0 3px 12px var(--lg-cast);
+        }
+        .lg-lens::after { content: ""; position: absolute; left: 24%; right: 24%; top: 1px; height: 3px; border-radius: 3px;
+            background: linear-gradient(90deg, rgba(120,200,255,0), rgba(255,255,255,.95) 30%, rgba(255,255,255,.95) 70%, rgba(255,120,120,0)); filter: blur(.4px); pointer-events: none; }
+        .lg-lens::before { content: ""; position: absolute; left: 30%; right: 30%; bottom: 1px; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events: none; }
+        .lg-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; isolation: isolate; }
+        .lg-clone { position: absolute; left: 0; top: 0; pointer-events: none; }
+        .lg-glare { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: var(--lg-blend); opacity: 0;
+            background: radial-gradient(circle at var(--gx, 30%) var(--gy, 12%), rgba(255,255,255,.8) 0, rgba(190,225,255,.4) 16%, rgba(255,255,255,0) 52%); }
+        .lg-rim { position: absolute; inset: 0; border-radius: inherit; padding: 1.6px; pointer-events: none; opacity: .9;
+            background: conic-gradient(from var(--ang, -30deg), rgba(255,255,255,0) 0deg, rgba(255,255,255,.95) 26deg, rgba(120,200,255,.5) 48deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 180deg, rgba(255,150,130,.45) 215deg, rgba(255,255,255,.7) 238deg, rgba(255,255,255,0) 285deg);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+        .lg-range { width: 100%; accent-color: var(--tint); margin: 0; height: 1.75rem; }
+        @media (prefers-reduced-transparency: reduce) { .lg-bar { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
     </style>
 </head>
-<body class="bg-ios-bg text-gray-100 min-h-screen flex flex-col pb-24">
+<body class="bg-ios-bg text-gray-100 min-h-screen flex flex-col">
 
     <!-- Header / Status Bar Area (original) -->
-    <header class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pt-4 pb-3 flex items-center justify-between shadow-lg">
+    <header id="app-header" class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pb-3 flex items-center justify-between gap-3 shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 flex items-center justify-center shrink-0 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]">
                 <img src="logos/universidad-de-chile.png" alt="Club Universidad de Chile" class="w-10 h-10 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
@@ -269,8 +389,8 @@
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5 animate-pulse"></span> Liga de Primera 2026
+            <span class="hdr-badge whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5 animate-pulse"></span> Primera 2026
             </span>
         </div>
     </header>
@@ -289,27 +409,185 @@
         <!-- Content injected via JavaScript -->
     </main>
 
-    <!-- Bottom Navigation Bar — 4 items principales con scroll horizontal (Apple-style spring scroll) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 glass-nav px-2 py-2">
-        <div class="max-w-2xl mx-auto flex gap-1 overflow-x-auto no-scrollbar text-center justify-center">
-            <button onclick="switchTab('tabla')" id="tab-tabla" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-blue-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                <span>Tabla</span>
-            </button>
-            <button onclick="switchTab('partidos')" id="tab-partidos" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                <span>Partidos</span>
-            </button>
-            <button onclick="switchTab('copas')" id="tab-copas" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                <span>Copas</span>
-            </button>
-            <button onclick="switchTab('club')" id="tab-club" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                <span>Club</span>
-            </button>
+    <!-- Bottom Navigation Bar · Liquid Glass (iOS 26) -->
+    <nav class="tabbar" aria-label="Navegación principal">
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+            <filter id="lg-wet" x="-8%" y="-12%" width="116%" height="124%" color-interpolation-filters="sRGB">
+                <feTurbulence id="lg-turb" type="fractalNoise" baseFrequency="0.018 0.045" numOctaves="2" seed="7" result="n"/>
+                <feDisplacementMap id="lg-disp" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </svg>
+        <div class="lg-bar" id="lg-bar">
+            <div class="lg-tabs" id="lg-base">
+                <button onclick="switchTab('tabla')" id="tab-btn-tabla" aria-label="Tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Tabla</span></button>
+                <button onclick="switchTab('partidos')" id="tab-btn-partidos" aria-label="Partidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>Partidos</span></button>
+                <button onclick="switchTab('copas')" id="tab-btn-copas" aria-label="Copas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg><span>Copas</span></button>
+                <button onclick="switchTab('club')" id="tab-btn-club" aria-label="Club"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span>Club</span></button>
+                <button onclick="switchTab('ajustes')" id="tab-btn-ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Ajustes</span></button>
+            </div>
+            <div class="lg-lens" id="lg-lens">
+                <div class="lg-clip">
+                    <div class="lg-clone" id="lg-clone">
+                        <div class="lg-tabs lg-r" id="lg-r" aria-hidden="true"></div>
+                        <div class="lg-tabs lg-b" id="lg-bl" aria-hidden="true"></div>
+                        <div class="lg-tabs lg-main" id="lg-main" aria-hidden="true"></div>
+                    </div>
+                    <div class="lg-glare" id="lg-glare"></div>
+                </div>
+                <div class="lg-rim" id="lg-rim"></div>
+            </div>
         </div>
     </nav>
+
+    <script>
+    /* Liquid Glass tab bar: gota de vidrio con lupa, reflejo de luz y dispersión de color */
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var bar = $('lg-bar'), base = $('lg-base'), lens = $('lg-lens'), clone = $('lg-clone');
+        var chR = $('lg-r'), chB = $('lg-bl'), main = $('lg-main'), glare = $('lg-glare'), rim = $('lg-rim');
+        var btns = base.querySelectorAll('button');
+        var IDS = Array.prototype.map.call(btns, function (b) { return b.id.replace('tab-btn-', ''); });
+        var N = IDS.length;
+        var html = Array.prototype.map.call(btns, function (b) { return '<span class="lg-tab">' + b.innerHTML + '</span>'; }).join('');
+        [chR, chB, main].forEach(function (c) { c.innerHTML = html; });
+        var layerTabs = [chR, chB, main].map(function (c) { return c.querySelectorAll('.lg-tab'); });
+        [base, chR, chB, main].forEach(function (c) { c.style.gridTemplateColumns = 'repeat(' + N + ', 1fr)'; });
+
+        function ld(k, d) { try { var v = parseFloat(localStorage.getItem(k)); return isFinite(v) ? v : d; } catch (e) { return d; } }
+        function sv(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+        var DEF = { mag: 1.3, dis: 1, glr: 1, wet: 1 };
+        var mag = ld('gp-lg-mag', DEF.mag), dis = ld('gp-lg-dis', DEF.dis), glr = ld('gp-lg-glr', DEF.glr), wet = ld('gp-lg-wet', DEF.wet);
+        var clip = lens.querySelector('.lg-clip'), lgDisp = $('lg-disp'), lgTurb = $('lg-turb');
+
+        var W = 0, H = 0, tabW = 0, lensH = 0, PAD = 4;
+        var current = 0, x = 0, vx = 0, target = 0, grow = 0, vg = 0, growTarget = 0, dragging = false, raf = 0, last = 0;
+        var flash = 0, gx = 0.3, gy = 0.15;
+        var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var K = 240, C = reduce ? 40 : 21;
+
+        function xFor(i) { return PAD + i * tabW; }
+        function measure() {
+            W = bar.clientWidth; H = bar.clientHeight;
+            tabW = (W - PAD * 2) / N; lensH = H - PAD * 2;
+            [base, chR, chB, main].forEach(function (t) { t.style.width = W + 'px'; t.style.height = H + 'px'; });
+            lens.style.width = tabW + 'px'; lens.style.height = lensH + 'px'; lens.style.borderRadius = (lensH / 2) + 'px';
+            clone.style.width = W + 'px'; clone.style.height = H + 'px';
+            if (!dragging) { x = target = xFor(current); }
+        }
+        function localX(e) { var r = bar.getBoundingClientRect(); return (e.clientX - r.left) * (W / (r.width || 1)); }
+        function clampX(px) { return Math.max(PAD, Math.min(W - PAD - tabW, px)); }
+        function indexAt(px) { return Math.max(0, Math.min(N - 1, Math.floor((px - PAD) / tabW))); }
+
+        function render() {
+            var stretch = Math.min(Math.abs(vx) / 2600, 0.28);
+            var sx = (1 + grow * 0.14) * (1 + stretch), sy = (1 + grow * 0.24) * (1 - stretch * 0.4);
+            lens.style.transform = 'translate3d(' + x + 'px,0,0) scale(' + sx + ',' + sy + ')';
+            bar.style.transform = 'scale(' + (1 + grow * 0.03) + ')';
+            var ca = dis * (0.3 + grow * 0.5 + Math.min(Math.abs(vx) / 2200, 1.1));
+            chR.style.transform = 'translate(' + (-ca) + 'px,' + (-ca * 0.35) + 'px)';
+            chB.style.transform = 'translate(' + ca + 'px,' + (ca * 0.35) + 'px)';
+            glare.style.setProperty('--gx', (gx * 100) + '%'); glare.style.setProperty('--gy', (gy * 100) + '%');
+            glare.style.opacity = String(Math.min(1, glr * (0.12 + grow * 0.5 + flash * 0.8)));
+            rim.style.setProperty('--ang', (-35 + (x / Math.max(W, 1)) * 70) + 'deg');
+            rim.style.opacity = String(Math.min(1, 0.55 + glr * 0.35 + grow * 0.2));
+            var s = mag * (1 + grow * 0.1);
+            clone.style.transformOrigin = (tabW / 2) + 'px ' + (lensH / 2) + 'px';
+            clone.style.transform = 'scale(' + (1 / sx) + ',' + (1 / sy) + ') translate(' + (-x) + 'px,' + (-PAD) + 'px)';
+            /* Los íconos base se desvanecen solo bajo la gota, con borde suave: el color de la lente los "pinta" de a poco */
+            var cx = x + tabW / 2, half = tabW * sx / 2;
+            var mk = 'linear-gradient(90deg,#000 0,#000 ' + (cx - half) + 'px,transparent ' + (cx - half * 0.5) + 'px,transparent ' + (cx + half * 0.5) + 'px,#000 ' + (cx + half) + 'px,#000 100%)';
+            base.style.webkitMaskImage = mk; base.style.maskImage = mk;
+            /* La capa de color entra por el borde de la gota y mancha el ícono de a poco, en su mismo lugar */
+            var tk = 'linear-gradient(90deg,transparent 0,transparent ' + (cx - half) + 'px,#000 ' + (cx - half * 0.5) + 'px,#000 ' + (cx + half * 0.5) + 'px,transparent ' + (cx + half) + 'px,transparent 100%)';
+            clone.style.webkitMaskImage = tk; clone.style.maskImage = tk;
+            /* Lupa: cada ícono crece sobre su propio centro según cuánto lo cubre la gota */
+            for (var li = 0; li < N; li++) {
+                var dd = Math.abs(cx - (xFor(li) + tabW / 2)) / tabW;
+                var w = Math.max(0, 1 - dd / 0.85); w = w * w * (3 - 2 * w);
+                var kk = 'scale(' + (1 + (s - 1) * w).toFixed(4) + ')';
+                for (var ly = 0; ly < 3; ly++) layerTabs[ly][li].style.transform = kk;
+            }
+            /* Distorsión de agua sobre vidrio mojado */
+            var sc = wet > 0 ? wet * (2 + grow * 7 + Math.min(Math.abs(vx) / 220, 6)) : 0;
+            lgDisp.setAttribute('scale', sc.toFixed(2));
+            clip.style.filter = wet > 0 ? 'url(#lg-wet)' : 'none';
+            var tt = performance.now() / 900;
+            lgTurb.setAttribute('baseFrequency', (0.018 + 0.004 * Math.sin(tt)).toFixed(4) + ' ' + (0.045 + 0.008 * Math.cos(tt * 1.3)).toFixed(4));
+        }
+        function step(t) {
+            var dt = Math.min((t - last) / 1000 || 0.016, 0.034); last = t;
+            var ax = -K * (x - target) - C * vx; vx += ax * dt; x += vx * dt;
+            var ag = -300 * (grow - growTarget) - 24 * vg; vg += ag * dt; grow += vg * dt;
+            flash *= Math.exp(-dt * 4.5);
+            render();
+            var still = Math.abs(vx) < 0.5 && Math.abs(x - target) < 0.1 && Math.abs(vg) < 0.01 && Math.abs(grow - growTarget) < 0.002 && flash < 0.01;
+            if (still && !dragging) { x = target; grow = growTarget; vx = 0; vg = 0; render(); raf = 0; return; }
+            raf = requestAnimationFrame(step);
+        }
+        function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } }
+
+        /* switchTab() llama a esto para que la gota siga a la pestaña activa */
+        window.lgSetTab = function (name) {
+            var i = IDS.indexOf(name); if (i < 0) return;
+            current = i; if (!dragging) { target = xFor(i); kick(); }
+        };
+
+        function updateGlare(e) {
+            var r = bar.getBoundingClientRect();
+            var px = localX(e), py = (e.clientY - r.top) * (H / (r.height || 1));
+            gx = Math.max(0.05, Math.min(0.95, (px - x) / tabW));
+            gy = Math.max(0.05, Math.min(0.6, (py - PAD) / lensH));
+        }
+        bar.addEventListener('pointerdown', function (e) {
+            dragging = true;
+            try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+            growTarget = 1; flash = 1; target = clampX(localX(e) - tabW / 2);
+            updateGlare(e); kick();
+        });
+        bar.addEventListener('pointermove', function (e) {
+            if (!dragging) return;
+            target = clampX(localX(e) - tabW / 2);
+            updateGlare(e); kick();
+        });
+        function release(e) {
+            if (!dragging) return;
+            dragging = false; growTarget = 0; gx = 0.3; gy = 0.15;
+            var i = indexAt(clampX(localX(e) - tabW / 2) + tabW / 2);
+            target = xFor(i);
+            if (i !== current && typeof switchTab === 'function') switchTab(IDS[i]);
+            current = i; kick();
+        }
+        bar.addEventListener('pointerup', release);
+        bar.addEventListener('pointercancel', release);
+
+        measure(); render();
+        if (window.ResizeObserver) new ResizeObserver(function () { measure(); render(); }).observe(bar);
+        window.addEventListener('resize', function () { measure(); render(); });
+
+        /* Controles de la pantalla de Ajustes (se vuelven a enlazar cada vez que se dibuja esa pantalla) */
+        function bindSettings() {
+            var defs = [['mag', 'gp-lg-mag'], ['dis', 'gp-lg-dis'], ['glr', 'gp-lg-glr'], ['wet', 'gp-lg-wet']];
+            function cur(k) { return k === 'mag' ? mag : k === 'dis' ? dis : k === 'glr' ? glr : wet; }
+            function put(k, v) { if (k === 'mag') mag = v; else if (k === 'dis') dis = v; else if (k === 'glr') glr = v; else wet = v; }
+            function show(k) { var el = $('lg-' + k), o = $('lg-' + k + '-out'); if (el) el.value = cur(k); if (o) o.textContent = cur(k).toFixed(2) + '×'; }
+            defs.forEach(function (d) {
+                var k = d[0], el = $('lg-' + k); if (!el) return;
+                show(k);
+                el.addEventListener('input', function (e) {
+                    put(k, parseFloat(e.target.value)); sv(d[1], cur(k)); show(k);
+                    if (k === 'glr') flash = 1;
+                    render(); kick();
+                });
+            });
+            var rs = $('lg-reset');
+            if (rs) rs.addEventListener('click', function () {
+                defs.forEach(function (d) { put(d[0], DEF[d[0]]); sv(d[1], DEF[d[0]]); show(d[0]); });
+                flash = 1; render(); kick();
+            });
+        }
+        window.lgBindSettings = bindSettings;
+    })();
+    </script>
 
     <!-- App State & Interactivity Scripts -->
     <script>
@@ -504,10 +782,65 @@
         function getData() { return appData || FALLBACK_DATA; }
 
         // Render Functions for Views
+        const SHORT_NAMES = {
+            "CC": "Colo-Colo", "UCH": "U. de Chile", "UC": "U. Católica", "EVE": "Everton",
+            "PAL": "Palestino", "LIM": "Limache", "HUA": "Huachipato", "ÑUB": "Ñublense",
+            "SER": "La Serena", "COQ": "Coquimbo", "CON": "Concepción", "AUD": "Audax",
+            "OHI": "O'Higgins", "CSL": "Cobresal", "UDC": "U. Concepción", "ULC": "La Calera"
+        };
+        function shortName(item) { return SHORT_NAMES[item.code] || item.name; }
+
         function renderStandings() {
+            const th = 'py-3 px-0.5 text-center';
+            const rows = (getData().liga.standings || []).map(item => {
+                const isU = item.isU;
+                let zoneColor = 'bg-transparent';
+                if (item.zone === 'libertadores') zoneColor = 'bg-blue-500';
+                else if (item.zone === 'sudamericana') zoneColor = 'bg-cyan-400';
+                else if (item.zone === 'descenso') zoneColor = 'bg-red-500';
+
+                const src = logoFor(item.code);
+                const fallback = `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}" ${src ? 'style="display:none;"' : ''}>${item.code || '?'}</div>`;
+                const logo = src
+                    ? `<img src="${src}" alt="${item.name}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>${fallback}`
+                    : fallback;
+                const dots = (item.last5 || []).map(res => {
+                    const c = res === 'G' ? 'bg-emerald-500' : res === 'P' ? 'bg-red-500' : 'bg-gray-400';
+                    const t = res === 'G' ? 'Victoria' : res === 'P' ? 'Derrota' : 'Empate';
+                    return `<span class="w-2 h-2 rounded-full ${c}" title="${t}"></span>`;
+                }).join('');
+                const dg = item.dg || 0;
+                const num = 'py-2.5 px-0.5 text-center';
+
+                return `
+                    <tr class="${isU ? 'glass-panel-highlight font-bold text-white' : 'text-gray-300'} relative">
+                        <td class="${num} relative">
+                            <div class="absolute left-0 top-1 bottom-1 w-1 rounded-r ${zoneColor}"></div>
+                            <span class="${isU ? 'text-white font-extrabold' : 'text-gray-400'}">${item.pos}</span>
+                        </td>
+                        <td class="py-2.5 px-1">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 flex items-center justify-center shrink-0 ${isU ? 'drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]' : ''}">${logo}</div>
+                                <div class="min-w-0">
+                                    <span class="block truncate ${isU ? 'text-white font-black' : 'font-semibold'}">${shortName(item)}</span>
+                                    <div class="flex gap-[3px] mt-1">${dots}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="${num}">${item.pj ?? '—'}</td>
+                        <td class="${num}">${item.g ?? '—'}</td>
+                        <td class="${num}">${item.e ?? '—'}</td>
+                        <td class="${num}">${item.p ?? '—'}</td>
+                        <td class="${num} opacity-80">${item.gf ?? '—'}</td>
+                        <td class="${num} opacity-80">${item.gc ?? '—'}</td>
+                        <td class="${num} font-semibold ${dg > 0 ? 'text-emerald-400' : dg < 0 ? 'text-red-400' : 'text-gray-400'}">${dg > 0 ? '+' + dg : (item.dg ?? '—')}</td>
+                        <td class="${num} font-extrabold text-sm ${isU ? 'text-yellow-300' : 'text-white'}">${item.pts ?? '—'}</td>
+                    </tr>
+                `;
+            }).join('');
+
             return `
                 <div class="tab-content space-y-4">
-                    <!-- Filters & Header Info -->
                     <div class="glass-panel p-4 rounded-3xl flex flex-wrap items-center justify-between gap-3" style="--i:0">
                         <div>
                             <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Campeonato Nacional</span>
@@ -523,96 +856,37 @@
                         </div>
                     </div>
 
-                    <!-- Standing Table Scrollable Container -->
+                    <!-- Tabla ajustada al ancho de la pantalla: sin scroll horizontal -->
                     <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-white/10" style="--i:1">
-                        <div class="table-container overflow-x-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead>
-                                    <tr class="bg-slate-900/90 text-gray-400 font-semibold border-b border-white/10 uppercase tracking-wider text-[10px]">
-                                        <th class="py-3 px-3 text-center">#</th>
-                                        <th class="py-3 px-4">Club</th>
-                                        <th class="py-3 px-2 text-center">PJ</th>
-                                        <th class="py-3 px-2 text-center">G</th>
-                                        <th class="py-3 px-2 text-center">E</th>
-                                        <th class="py-3 px-2 text-center">P</th>
-                                        <th class="py-3 px-2 text-center">GF</th>
-                                        <th class="py-3 px-2 text-center">GC</th>
-                                        <th class="py-3 px-2 text-center">DG</th>
-                                        <th class="py-3 px-3 text-center font-bold text-white">Pts</th>
-                                        <th class="py-3 px-4 text-center">Últimos 5</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-white/5 font-medium">
-                                    ${(getData().liga.standings || []).map(item => {
-                                        const isU = item.isU;
-                                        let zoneColor = 'bg-transparent';
-                                        if (item.zone === 'libertadores') zoneColor = 'bg-blue-500';
-                                        else if (item.zone === 'sudamericana') zoneColor = 'bg-cyan-400';
-                                        else if (item.zone === 'descenso') zoneColor = 'bg-red-500';
-
-                                        return `
-                                            <tr class="${isU ? 'glass-panel-highlight font-bold text-white scale-[1.01]' : 'hover:bg-white/5 transition-colors text-gray-300'} relative">
-                                                <td class="py-3 px-3 text-center relative">
-                                                    <div class="absolute left-0 top-0 bottom-0 w-1 ${zoneColor}"></div>
-                                                    <span class="${isU ? 'text-white font-extrabold text-sm' : 'text-gray-400'}">${item.pos}</span>
-                                                </td>
-                                                <td class="py-3 px-4 flex items-center space-x-2.5">
-                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0 ${isU ? 'drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]' : ''}">
-                                                        ${(() => {
-                                                            const src = logoFor(item.code);
-                                                            return src
-                                                                ? `<img src="${src}" alt="${item.name}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
-                                                                     <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}" style="display:none;">${item.code || '?'}</div>`
-                                                                : `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}">${item.code || '?'}</div>`;
-                                                        })()}
-                                                    </div>
-                                                    <span class="${isU ? 'text-white text-sm font-black tracking-wide' : 'font-semibold'}">${item.name}</span>
-                                                </td>
-                                                <td class="py-3 px-2 text-center">${item.pj ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center">${item.g ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center">${item.e ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center">${item.p ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center opacity-80">${item.gf ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center opacity-80">${item.gc ?? '—'}</td>
-                                                <td class="py-3 px-2 text-center font-semibold ${(item.dg || 0) > 0 ? 'text-emerald-400' : (item.dg || 0) < 0 ? 'text-red-400' : 'text-gray-400'}">
-                                                    ${(item.dg || 0) > 0 ? '+' + item.dg : (item.dg ?? '—')}
-                                                </td>
-                                                <td class="py-3 px-3 text-center font-extrabold text-sm ${isU ? 'text-yellow-300' : 'text-white'}">${item.pts ?? '—'}</td>
-                                                <td class="py-3 px-4">
-                                                    <div class="flex items-center justify-center space-x-1">
-                                                        ${(item.last5 || []).map(res => {
-                                                            if (res === 'G') {
-                                                                return `<span class="w-5 h-5 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Victoria">✓</span>`;
-                                                            } else if (res === 'P') {
-                                                                return `<span class="w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Derrota">✕</span>`;
-                                                            } else {
-                                                                return `<span class="w-5 h-5 rounded-full bg-gray-500/80 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Empate">-</span>`;
-                                                            }
-                                                        }).join('')}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                        <table class="standings-table w-full text-xs tabular-nums" style="table-layout:fixed;">
+                            <colgroup>
+                                <col style="width:8%"><col>
+                                <col style="width:7.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%">
+                                <col style="width:7.5%"><col style="width:7.5%"><col style="width:8.5%"><col style="width:8.5%">
+                            </colgroup>
+                            <thead>
+                                <tr class="bg-slate-900/90 text-gray-400 font-semibold border-b border-white/10 uppercase text-[10px]">
+                                    <th class="${th}">#</th>
+                                    <th class="py-3 px-1 text-left">Club</th>
+                                    <th class="${th}">PJ</th>
+                                    <th class="${th}">G</th>
+                                    <th class="${th}">E</th>
+                                    <th class="${th}">P</th>
+                                    <th class="${th}">GF</th>
+                                    <th class="${th}">GC</th>
+                                    <th class="${th}">DG</th>
+                                    <th class="${th} text-white">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 font-medium">${rows}</tbody>
+                        </table>
                     </div>
 
-                    <!-- Legend -->
                     <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-around gap-2 text-[11px] text-gray-400" style="--i:2">
-                        <div class="flex items-center space-x-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                            <span>Copa Libertadores</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                            <span>Copa Sudamericana</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                            <span>Zona Descenso</span>
-                        </div>
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Libertadores</span></div>
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span>Sudamericana</span></div>
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>Descenso</span></div>
+                        <div class="flex items-center space-x-1.5"><span class="flex gap-[2px]"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="w-2 h-2 rounded-full bg-gray-400"></span><span class="w-2 h-2 rounded-full bg-red-500"></span></span><span>Últimos 5</span></div>
                     </div>
                 </div>
             `;
@@ -999,9 +1273,105 @@
             `;
         }
 
+        // ============================================================
+        // Cánticos de Los de Abajo: lista clickeable con letra completa.
+        // Las letras las agregas tú (se guardan en este teléfono).
+        // ============================================================
+        const CHANTS_KEY = 'uch-chants';
+        let chantOpen = null;      // id del cántico abierto
+        let chantEdit = null;      // id en edición, o 'new'
+        function loadChants() {
+            try {
+                const v = JSON.parse(localStorage.getItem(CHANTS_KEY));
+                if (Array.isArray(v)) return v;
+            } catch (e) {}
+            return [
+                { id: 'c1', title: 'El Himno de la U', text: 'Mágica azul, tu estrella es la luz que guía a la victoria... ¡Universidad de Chile!' },
+                { id: 'c2', title: 'Te Sigo a Todas Partes', text: 'No importa en qué cancha jugues, a la U la sigo a todas partes con el corazón...' }
+            ];
+        }
+        function saveChants(list) { try { localStorage.setItem(CHANTS_KEY, JSON.stringify(list)); } catch (e) {} }
+        function refreshChants() {
+            const box = document.getElementById('chants-box');
+            if (box) box.innerHTML = renderChants();
+        }
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+        function renderChants() {
+            const list = loadChants();
+            const editing = chantEdit === 'new' ? { id: 'new', title: '', text: '' } : list.find(c => c.id === chantEdit);
+            const form = editing ? `
+                <div class="p-3 rounded-2xl bg-slate-800/50 border border-blue-500/30 space-y-2">
+                    <input id="chant-title" value="${esc(editing.title)}" placeholder="Nombre del cántico" class="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/10 text-sm text-white focus:outline-none" style="user-select:text;-webkit-user-select:text;">
+                    <textarea id="chant-text" rows="9" placeholder="Pega aquí la letra completa" class="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/10 text-sm text-white focus:outline-none" style="user-select:text;-webkit-user-select:text;">${esc(editing.text)}</textarea>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="saveChant('${editing.id}')" class="pressable flex-1 py-2 rounded-xl text-sm font-bold bg-uchile-blue text-white border border-uchile-gold">Guardar</button>
+                        <button type="button" onclick="chantEdit=null;refreshChants()" class="pressable flex-1 py-2 rounded-xl text-sm font-bold bg-slate-800/60 border border-white/10 text-gray-300">Cancelar</button>
+                    </div>
+                </div>` : '';
+            return `
+                <div class="glass-panel p-4 rounded-3xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
+                            Cánticos de Los de Abajo
+                        </h3>
+                        <button type="button" onclick="chantEdit='new';chantOpen=null;refreshChants()" class="pressable px-3 py-1.5 rounded-xl text-xs font-bold bg-uchile-blue text-white border border-uchile-gold">+ Agregar</button>
+                    </div>
+                    ${chantEdit === 'new' ? form : ''}
+                    <div class="space-y-2">
+                        ${list.map(c => {
+                            const open = chantOpen === c.id;
+                            return `
+                            <div class="rounded-2xl bg-slate-800/50 border ${open ? 'border-blue-500/40' : 'border-white/5'} overflow-hidden">
+                                <button type="button" onclick="toggleChant('${c.id}')" class="pressable w-full flex items-center justify-between gap-2 p-3 text-left">
+                                    <span class="text-sm font-bold text-blue-400">${esc(c.title)}</span>
+                                    <svg class="w-4 h-4 text-gray-400 shrink-0" style="transition:transform .3s;transform:rotate(${open ? 180 : 0}deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                ${open ? (chantEdit === c.id ? `<div class="p-3 pt-0">${form}</div>` : `
+                                <div class="px-3 pb-3 space-y-3">
+                                    <p class="text-sm text-gray-200 leading-relaxed whitespace-pre-line" style="user-select:text;-webkit-user-select:text;">${esc(c.text) || '<span class="text-gray-500 italic">Aún no tiene letra. Toca Editar para pegarla.</span>'}</p>
+                                    <div class="flex gap-2">
+                                        <button type="button" onclick="chantEdit='${c.id}';refreshChants()" class="pressable flex-1 py-2 rounded-xl text-xs font-bold bg-slate-800/60 border border-white/10 text-gray-200">Editar</button>
+                                        <a href="https://www.google.com/search?q=${encodeURIComponent(c.title + ' letra cántico Universidad de Chile')}" target="_blank" rel="noopener" class="pressable flex-1 py-2 rounded-xl text-xs font-bold text-center bg-slate-800/60 border border-white/10 text-gray-200">Buscar letra</a>
+                                        <button type="button" onclick="deleteChant('${c.id}')" class="pressable px-4 py-2 rounded-xl text-xs font-bold bg-red-500/15 border border-red-500/30 text-red-400">Borrar</button>
+                                    </div>
+                                </div>`) : ''}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+        }
+        function toggleChant(id) { chantOpen = chantOpen === id ? null : id; chantEdit = null; refreshChants(); }
+        function saveChant(id) {
+            const title = document.getElementById('chant-title').value.trim();
+            const text = document.getElementById('chant-text').value.replace(/\s+$/, '');
+            if (!title) { document.getElementById('chant-title').focus(); return; }
+            const list = loadChants();
+            if (id === 'new') { const n = 'c' + Date.now(); list.push({ id: n, title, text }); chantOpen = n; }
+            else { const c = list.find(x => x.id === id); if (c) { c.title = title; c.text = text; } }
+            saveChants(list); chantEdit = null; refreshChants();
+        }
+        function deleteChant(id) {
+            if (!confirm('¿Borrar este cántico?')) return;
+            saveChants(loadChants().filter(c => c.id !== id));
+            chantOpen = null; chantEdit = null; refreshChants();
+        }
+
         function renderCulture() {
             return `
                 <div class="tab-content space-y-4">
+                    <div style="--i:0">
+                        <div class="glass-panel p-4 rounded-3xl">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] uppercase tracking-wider font-bold text-gray-400">Títulos de liga</span>
+                                <span class="text-base">👑</span>
+                            </div>
+                            <p class="mt-3 leading-none"><span class="text-3xl font-black text-blue-400">18</span> <span class="text-sm text-gray-300">Estrellas</span></p>
+                            <p class="text-[11px] text-yellow-400 mt-5 font-semibold">🏆 + 1 Copa Sudamericana</p>
+                        </div>
+                    </div>
+
                     <div class="glass-panel p-5 rounded-3xl space-y-2" style="--i:0">
                         <span class="text-xs uppercase tracking-widest text-uchile-gold font-bold">Mística y Gloria</span>
                         <h2 class="text-xl font-bold text-white">Historia del Romántico Viajero</h2>
@@ -1011,47 +1381,26 @@
                     </div>
 
                     <!-- Cánticos de la Hinchada -->
-                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:1">
-                        <h3 class="text-sm font-bold text-white flex items-center">
-                            <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
-                            Cánticos de Los de Abajo
-                        </h3>
-                        <div class="space-y-2">
-                            <div class="pressable p-3 rounded-2xl bg-slate-800/50 border border-white/5 space-y-1">
-                                <h4 class="text-xs font-bold text-blue-400">"El Himno de la U"</h4>
-                                <p class="text-xs italic text-gray-300">"Mágica azul, tu estrella es la luz que guía a la victoria... ¡Universidad de Chile!"</p>
-                            </div>
-                            <div class="pressable p-3 rounded-2xl bg-slate-800/50 border border-white/5 space-y-1">
-                                <h4 class="text-xs font-bold text-red-400">"Te Sigo a Todas Partes"</h4>
-                                <p class="text-xs italic text-gray-300">"No importa en qué cancha jugues, a la U la sigo a todas partes con el corazón..."</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="chants-box" style="--i:1">${renderChants()}</div>
                 </div>
             `;
         }
 
-        // View Navigation Handler (with Apple spring feedback)
+        // View Navigation Handler (la gota Liquid Glass sigue a la pestaña activa)
         function switchTab(tab) {
             if (tab === currentTab) return;
             currentTab = tab;
 
             const content = document.getElementById('app-content');
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-blue-400');
-                btn.classList.add('text-gray-400');
-            });
-
-            const activeBtn = document.getElementById(`tab-${tab}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-gray-400');
-                activeBtn.classList.add('text-blue-400');
-            }
 
             if (tab === 'tabla') content.innerHTML = renderStandings();
             else if (tab === 'partidos') content.innerHTML = renderMatches();
             else if (tab === 'copas') content.innerHTML = renderCompeticiones();
             else if (tab === 'club') content.innerHTML = renderClub();
+            else if (tab === 'ajustes') {
+                content.innerHTML = renderSettings();
+                if (window.lgBindSettings) window.lgBindSettings();
+            }
 
             // Apply staggered child indices for entrance animation
             const children = content.querySelectorAll('.tab-content > *');
@@ -1059,16 +1408,85 @@
                 if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', i);
             });
 
-            // Spring bounce on the active nav button (Apple §4 — momentum drives overshoot)
-            if (window.Motion && activeBtn) {
-                try {
-                    window.Motion.animate(
-                        activeBtn,
-                        { transform: ['scale(1)', 'scale(0.92)', 'scale(1)'] },
-                        { duration: 0.4, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
-                    );
-                } catch(e) { /* fail silently */ }
-            }
+            if (window.lgSetTab) window.lgSetTab(tab);
+        }
+
+        // ============================================================
+        // Ajustes: apariencia (claro/oscuro), tamaño de letra y Liquid Glass
+        // ============================================================
+        function getPref(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+        function setPref(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+
+        function themeBtnClass(on) {
+            return 'pressable flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' +
+                (on ? 'bg-uchile-blue text-white border border-uchile-gold shadow-md' : 'text-gray-400 border border-transparent');
+        }
+        function setTheme(mode) {
+            setPref('uch-theme', mode);
+            window.applyTheme(mode);
+            document.querySelectorAll('[data-theme-opt]').forEach(b => { b.className = themeBtnClass(b.dataset.themeOpt === mode); });
+        }
+        function setFontScale(v) {
+            const n = window.applyFontScale(v);
+            setPref('uch-fs', n);
+            const o = document.getElementById('fs-out'); if (o) o.textContent = Math.round(n) + '%';
+            const r = document.getElementById('fs-range'); if (r && parseFloat(r.value) !== n) r.value = n;
+        }
+
+        function renderSettings() {
+            const theme = getPref('uch-theme', 'dark');
+            const fs = Math.round(parseFloat(getPref('uch-fs', '100')) || 100);
+            const themeOpts = [['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']];
+            const slider = (id, label, min, max, step, val) => `
+                <label class="block">
+                    <span class="flex justify-between gap-2 text-sm font-semibold text-gray-200 mb-1">
+                        <span>${label}</span>
+                        <output id="lg-${id}-out" class="text-blue-400 font-bold tabular-nums">${val}×</output>
+                    </span>
+                    <input id="lg-${id}" class="lg-range" type="range" min="${min}" max="${max}" step="${step}" value="${val}">
+                </label>`;
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-4 rounded-3xl" style="--i:0">
+                        <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Personalización</span>
+                        <h2 class="text-xl font-bold text-white mt-1">Ajustes</h2>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:1">
+                        <h3 class="text-sm font-bold text-white">Apariencia</h3>
+                        <p class="text-xs text-gray-400">Elige entre modo claro, oscuro o que siga al iPhone.</p>
+                        <div class="flex gap-1 p-1 rounded-2xl bg-slate-800/40 border border-white/5">
+                            ${themeOpts.map(([id, label]) => `<button type="button" data-theme-opt="${id}" onclick="setTheme('${id}')" class="${themeBtnClass(theme === id)}">${label}</button>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:2">
+                        <h3 class="text-sm font-bold text-white">Tamaño de letra</h3>
+                        <p class="text-xs text-gray-400">Aumenta o reduce el texto de toda la interfaz.</p>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-400">A</span>
+                            <input id="fs-range" class="lg-range" type="range" min="85" max="140" step="5" value="${fs}" oninput="setFontScale(this.value)">
+                            <span class="text-xl font-bold text-gray-400">A</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <output id="fs-out" class="text-blue-400 font-bold tabular-nums">${fs}%</output>
+                            <button type="button" onclick="setFontScale(100)" class="pressable px-4 py-2 rounded-xl text-xs font-bold bg-slate-800/60 border border-white/10 text-gray-200">Restablecer</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-3xl space-y-4" style="--i:3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Barra de pestañas · Liquid Glass</h3>
+                            <p class="text-xs text-gray-400 mt-1">Ajusta el efecto de vidrio de la barra inferior. Los cambios se ven al instante y se guardan en este dispositivo.</p>
+                        </div>
+                        ${slider('mag', 'Magnificación de la lupa', 1, 1.8, 0.01, 1.3)}
+                        ${slider('dis', 'Dispersión de color', 0, 2.5, 0.05, 1)}
+                        ${slider('glr', 'Reflejo de luz', 0, 1.5, 0.05, 1)}
+                        ${slider('wet', 'Distorsión de agua', 0, 2.5, 0.05, 1)}
+                        <button type="button" id="lg-reset" class="pressable w-full py-2.5 rounded-xl text-sm font-bold bg-slate-800/60 border border-white/10 text-gray-200">Restablecer efecto</button>
+                    </div>
+                </div>
+            `;
         }
 
         // Cambia el sub-tab dentro de la vista Competiciones
@@ -1103,6 +1521,7 @@
                 { id: 'plantel',      label: 'Plantel' },
                 { id: 'estadisticas', label: 'Estadísticas' },
                 { id: 'mistica',      label: 'Mística' },
+                { id: 'links',        label: 'Links Azules' },
             ];
             return `
                 <div class="tab-content space-y-4">
@@ -1124,10 +1543,47 @@
             `;
         }
 
+        const BLUE_LINKS = [
+            { name: 'Sitio Oficial', url: 'https://www.udechile.cl',
+              color: 'text-blue-400 bg-blue-500/15',
+              icon: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>' },
+            { name: 'Tienda U', url: 'https://tienda.udechile.cl',
+              color: 'text-red-400 bg-red-500/15',
+              icon: '<path d="M8 3L3 6l2 4 3-1v12h8V9l3 1 2-4-5-3a4 4 0 01-8 0z"/>' },
+            { name: 'Entradas', url: 'https://www.puntoticket.com',
+              color: 'text-amber-400 bg-amber-500/15',
+              icon: '<path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4V8z"/><path d="M14 6v12" stroke-dasharray="2 2"/>' },
+            { name: 'U TV', url: 'https://www.youtube.com/@udechile',
+              color: 'text-red-500 bg-red-500/15',
+              icon: '<rect x="3" y="5" width="18" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>' }
+        ];
+
+        function renderLinks() {
+            return `
+                <div class="tab-content space-y-4">
+                    <div class="glass-panel p-4 rounded-3xl" style="--i:0">
+                        <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Accesos rápidos</span>
+                        <h2 class="text-xl font-bold text-white mt-1">Links Azules</h2>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3" style="--i:1">
+                        ${BLUE_LINKS.map(l => `
+                            <a href="${l.url}" target="_blank" rel="noopener" class="pressable glass-panel rounded-3xl p-4 flex flex-col items-center gap-3 text-center">
+                                <span class="w-12 h-12 rounded-2xl flex items-center justify-center ${l.color}">
+                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${l.icon}</svg>
+                                </span>
+                                <span class="text-sm font-bold text-white">${l.name}</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         function renderClubSection(section) {
             if (section === 'plantel')      return renderRoster();
             if (section === 'estadisticas') return renderEstadisticas();
             if (section === 'mistica')      return renderCulture();
+            if (section === 'links')        return renderLinks();
             return '';
         }
 
