@@ -3,7 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mi UChile - App Oficial</title>
+
+    <!-- Nombre de la app en iOS / Android (cuando se agrega a pantalla de inicio) -->
+    <meta name="apple-mobile-web-app-title" content="U. de Chile">
+    <meta name="application-name" content="U. de Chile">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0B0F19">
+
+    <!-- Iconos de app (iOS home screen + Android + favicon) usando el logo de la U. de Chile -->
+    <link rel="apple-touch-icon" sizes="512x512" href="logos/icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logos/icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="logos/icon-152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="logos/icon-120.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="logos/icon-512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="logos/icon-192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="logos/icon-32.png">
+    <link rel="shortcut icon" href="logos/icon-32.png">
+
+    <title>Club Universidad de Chile — App Oficial</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -238,11 +257,14 @@
     <!-- Header / Status Bar Area (original) -->
     <header class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pt-4 pb-3 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-full bg-uchile-blue border-2 border-uchile-gold flex items-center justify-center font-bold text-white shadow-md pressable">
-                U
+            <div class="w-10 h-10 flex items-center justify-center shrink-0 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]">
+                <img src="logos/universidad-de-chile.png" alt="Club Universidad de Chile" class="w-10 h-10 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+                <div class="w-10 h-10 rounded-full bg-uchile-blue border-2 border-uchile-gold flex items-center justify-center font-bold text-white shadow-md pressable" style="display:none;">
+                    U
+                </div>
             </div>
             <div>
-                <h1 class="font-bold text-lg leading-none tracking-tight">Mi UChile</h1>
+                <h1 class="font-bold text-base leading-none tracking-tight">Club Universidad de Chile</h1>
                 <p class="text-[11px] text-gray-400 font-medium mt-0.5">App Oficial del Romántico Viajero</p>
             </div>
         </div>
@@ -255,35 +277,36 @@
 
     <!-- Main Dynamic Content Container -->
     <main id="app-content" class="flex-grow p-4 max-w-4xl mx-auto w-full">
+        <!-- Loader inicial — se reemplaza al cargar el JS -->
+        <div id="initial-loader" class="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-gray-400">
+            <svg class="w-10 h-10 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <p class="text-sm">Cargando Club Universidad de Chile…</p>
+            <p class="text-[10px] text-gray-600">Si esto no desaparece, revisa la consola (F12)</p>
+        </div>
         <!-- Content injected via JavaScript -->
     </main>
 
-    <!-- Bottom Navigation Bar — 6 items con scroll horizontal (Apple-style spring scroll) -->
+    <!-- Bottom Navigation Bar — 4 items principales con scroll horizontal (Apple-style spring scroll) -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 glass-nav px-2 py-2">
-        <div class="max-w-2xl mx-auto flex gap-1 overflow-x-auto no-scrollbar text-center">
-            <button onclick="switchTab('tabla')" id="tab-tabla" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-blue-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+        <div class="max-w-2xl mx-auto flex gap-1 overflow-x-auto no-scrollbar text-center justify-center">
+            <button onclick="switchTab('tabla')" id="tab-tabla" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-blue-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
                 <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 <span>Tabla</span>
             </button>
-            <button onclick="switchTab('partidos')" id="tab-partidos" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+            <button onclick="switchTab('partidos')" id="tab-partidos" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
                 <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <span>Partidos</span>
             </button>
-            <button onclick="switchTab('plantel')" id="tab-plantel" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                <span>Plantel</span>
-            </button>
-            <button onclick="switchTab('competiciones')" id="tab-competiciones" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
+            <button onclick="switchTab('copas')" id="tab-copas" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
                 <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                 <span>Copas</span>
             </button>
-            <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
+            <button onclick="switchTab('club')" id="tab-club" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-3.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[68px]">
                 <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                <span>Estadísticas</span>
-            </button>
-            <button onclick="switchTab('cultura')" id="tab-cultura" class="nav-btn flex-shrink-0 flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl text-gray-400 font-medium text-xs transition-all duration-200 min-w-[64px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                <span>Mística</span>
+                <span>Club</span>
             </button>
         </div>
     </nav>
@@ -352,7 +375,8 @@
         // ============================================================
         let appData = null;       // se llena desde data.json
         let currentTab = '';
-        let currentCompetition = 'prelibertadores';  // sub-tab de la vista Competiciones
+        let currentCompetition = 'prelibertadores';  // sub-tab de la vista Copas
+        let currentClubSection = 'plantel';           // sub-tab de la vista Club
 
         // Estructura inicial (fallback si data.json no carga)
         const FALLBACK_DATA = {
@@ -1026,10 +1050,8 @@
 
             if (tab === 'tabla') content.innerHTML = renderStandings();
             else if (tab === 'partidos') content.innerHTML = renderMatches();
-            else if (tab === 'plantel') content.innerHTML = renderRoster();
-            else if (tab === 'competiciones') content.innerHTML = renderCompeticiones();
-            else if (tab === 'estadisticas') content.innerHTML = renderEstadisticas();
-            else if (tab === 'cultura') content.innerHTML = renderCulture();
+            else if (tab === 'copas') content.innerHTML = renderCompeticiones();
+            else if (tab === 'club') content.innerHTML = renderClub();
 
             // Apply staggered child indices for entrance animation
             const children = content.querySelectorAll('.tab-content > *');
@@ -1072,6 +1094,64 @@
         }
 
         // ============================================================
+        // Vista Club: sub-tabs para Plantel, Estadísticas y Mística.
+        // Renombramos el tab "Estadísticas" → "Club" para que agrupe
+        // todo lo institucional del club (jugadores, números, historia).
+        // ============================================================
+        function renderClub() {
+            const sections = [
+                { id: 'plantel',      label: 'Plantel' },
+                { id: 'estadisticas', label: 'Estadísticas' },
+                { id: 'mistica',      label: 'Mística' },
+            ];
+            return `
+                <div class="tab-content space-y-4">
+                    <!-- Sub-tab selector -->
+                    <div class="glass-panel p-2 rounded-2xl" style="--i:0">
+                        <div class="flex gap-1 overflow-x-auto no-scrollbar">
+                            ${sections.map(s => `
+                                <button onclick="setClubSection('${s.id}')" class="pressable flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentClubSection === s.id ? 'bg-uchile-blue text-white border border-uchile-gold shadow-md' : 'text-gray-400 border border-transparent'}">
+                                    ${s.label}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="club-content" style="--i:1">
+                        ${renderClubSection(currentClubSection)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderClubSection(section) {
+            if (section === 'plantel')      return renderRoster();
+            if (section === 'estadisticas') return renderEstadisticas();
+            if (section === 'mistica')      return renderCulture();
+            return '';
+        }
+
+        function setClubSection(section) {
+            if (section === currentClubSection) return;
+            currentClubSection = section;
+            const detail = document.getElementById('club-content');
+            if (detail) {
+                detail.innerHTML = renderClubSection(section);
+                if (window.Motion) {
+                    try {
+                        window.Motion.animate(
+                            detail,
+                            { opacity: [0, 1], transform: ['translateY(8px)', 'translateY(0)'] },
+                            { duration: 0.45, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+                        );
+                    } catch(e) { /* fail silently */ }
+                }
+            }
+            // Re-render to update active button state
+            document.getElementById('app-content').innerHTML = renderClub();
+        }
+
+        // ============================================================
         // Carga dinámica de datos desde data.json (generado por el
         // scraper Python + GitHub Action). Si fetch falla (ej: abriendo
         // el archivo local con file://), usa FALLBACK_DATA.
@@ -1088,11 +1168,36 @@
             }
         }
 
-        // Initialize App
-        window.onload = async function() {
-            await loadData();
-            switchTab('tabla');
-        };
+        // ============================================================
+        // Inicialización — usa DOMContentLoaded (no espera a `load`)
+        // para no depender de que el CDN de Motion cargue. Si el
+        // documento ya está parsed, ejecuta inmediatamente.
+        // ============================================================
+        async function initApp() {
+            try {
+                await loadData();
+                switchTab('tabla');
+            } catch (err) {
+                console.error('[Mi UChile] Error al inicializar:', err);
+                // Mostrar mensaje de error visible en lugar de pantalla en blanco
+                document.getElementById('app-content').innerHTML = `
+                    <div class="glass-panel p-6 rounded-3xl text-center space-y-3">
+                        <div class="text-red-400 text-4xl">⚠</div>
+                        <h2 class="text-lg font-bold text-white">No se pudo cargar la app</h2>
+                        <p class="text-xs text-gray-400">Error: ${err.message || 'desconocido'}</p>
+                        <p class="text-xs text-gray-500 mt-4">Abre la consola (F12) para más detalles, o recarga la página.</p>
+                        <button onclick="location.reload()" class="pressable mt-4 px-4 py-2 rounded-xl bg-uchile-blue text-white text-sm font-bold border border-uchile-gold">Recargar</button>
+                    </div>
+                `;
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            // El DOM ya está listo (script está al final del body)
+            initApp();
+        }
     </script>
 </body>
 </html>
