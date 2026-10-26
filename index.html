@@ -1154,16 +1154,23 @@
         // ============================================================
         // Carga dinámica de datos desde data.json (generado por el
         // scraper Python + GitHub Action). Si fetch falla (ej: abriendo
-        // el archivo local con file://), usa FALLBACK_DATA.
+        // el archivo local con file://) o el JSON tiene estructura
+        // incorrecta, usa FALLBACK_DATA.
         // ============================================================
         async function loadData() {
             try {
                 const res = await fetch('data.json', { cache: 'no-store' });
-                if (!res.ok) throw new Error('data.json no disponible');
-                appData = await res.json();
-                console.log('[Mi UChile] Datos cargados desde data.json', appData.meta);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const parsed = await res.json();
+                // Validar estructura mínima
+                if (!parsed || !parsed.liga || !Array.isArray(parsed.liga.standings) || !parsed.liga.standings.length) {
+                    console.warn('[Mi UChile] data.json no tiene estructura esperada — usando FALLBACK_DATA. Recibido:', parsed);
+                    throw new Error('Estructura de data.json inválida (falta liga.standings)');
+                }
+                appData = parsed;
+                console.log('[Mi UChile] ✓ Datos cargados desde data.json', appData.meta);
             } catch (err) {
-                console.warn('[Mi UChile] Usando datos de fallback (offline o data.json no encontrado):', err.message);
+                console.warn('[Mi UChile] Usando datos de fallback:', err.message);
                 appData = null;  // getData() usará FALLBACK_DATA
             }
         }
