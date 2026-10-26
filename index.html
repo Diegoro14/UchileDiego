@@ -462,6 +462,7 @@
         var W = 0, H = 0, tabW = 0, lensH = 0, PAD = 4;
         var current = 0, x = 0, vx = 0, target = 0, grow = 0, vg = 0, growTarget = 0, dragging = false, raf = 0, last = 0;
         var flash = 0, gx = 0.3, gy = 0.15;
+        var activeId = null, lastMove = 0;
         var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
         var K = 240, C = reduce ? 40 : 21;
 
@@ -515,6 +516,7 @@
             lgTurb.setAttribute('baseFrequency', (0.018 + 0.004 * Math.sin(tt)).toFixed(4) + ' ' + (0.045 + 0.008 * Math.cos(tt * 1.3)).toFixed(4));
         }
         function step(t) {
+            if (dragging && performance.now() - lastMove > 6000) settle(false);   /* seguro anti-pegado */
             var dt = Math.min((t - last) / 1000 || 0.016, 0.034); last = t;
             var ax = -K * (x - target) - C * vx; vx += ax * dt; x += vx * dt;
             var ag = -300 * (grow - growTarget) - 24 * vg; vg += ag * dt; grow += vg * dt;
@@ -538,27 +540,36 @@
             gx = Math.max(0.05, Math.min(0.95, (px - x) / tabW));
             gy = Math.max(0.05, Math.min(0.6, (py - PAD) / lensH));
         }
+        /* Gestos: un solo dedo activo, y la gota siempre se suelta aunque iOS interrumpa el deslizamiento */
+        function settle(useX, e) {
+            if (!dragging) return;
+            dragging = false; activeId = null; growTarget = 0; gx = 0.3; gy = 0.15;
+            var px = (useX && e && isFinite(e.clientX) && e.clientX > 0) ? clampX(localX(e) - tabW / 2) : clampX(x);
+            var i = indexAt(px + tabW / 2);
+            target = xFor(i);
+            if (i !== current && typeof switchTab === 'function') switchTab(IDS[i]);
+            current = i; kick();
+        }
         bar.addEventListener('pointerdown', function (e) {
-            dragging = true;
+            if (dragging) settle(false);            /* por si quedó un gesto colgado */
+            activeId = e.pointerId; dragging = true; lastMove = performance.now();
             try { bar.setPointerCapture(e.pointerId); } catch (err) {}
             growTarget = 1; flash = 1; target = clampX(localX(e) - tabW / 2);
             updateGlare(e); kick();
         });
         bar.addEventListener('pointermove', function (e) {
-            if (!dragging) return;
+            if (!dragging || e.pointerId !== activeId) return;
+            if (e.pointerType === 'mouse' && e.buttons === 0) { settle(true, e); return; }
+            lastMove = performance.now();
             target = clampX(localX(e) - tabW / 2);
             updateGlare(e); kick();
         });
-        function release(e) {
-            if (!dragging) return;
-            dragging = false; growTarget = 0; gx = 0.3; gy = 0.15;
-            var i = indexAt(clampX(localX(e) - tabW / 2) + tabW / 2);
-            target = xFor(i);
-            if (i !== current && typeof switchTab === 'function') switchTab(IDS[i]);
-            current = i; kick();
-        }
-        bar.addEventListener('pointerup', release);
-        bar.addEventListener('pointercancel', release);
+        bar.addEventListener('pointerup', function (e) { if (e.pointerId === activeId) settle(true, e); });
+        bar.addEventListener('pointercancel', function (e) { if (e.pointerId === activeId) settle(false); });
+        bar.addEventListener('lostpointercapture', function (e) { if (e.pointerId === activeId) settle(false); });
+        bar.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        ['touchcancel', 'blur', 'pagehide'].forEach(function (ev) { window.addEventListener(ev, function () { settle(false); }); });
+        document.addEventListener('visibilitychange', function () { if (document.hidden) settle(false); });
 
         measure(); render();
         if (window.ResizeObserver) new ResizeObserver(function () { measure(); render(); }).observe(bar);
@@ -887,6 +898,7 @@
                         <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span>Sudamericana</span></div>
                         <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>Descenso</span></div>
                         <div class="flex items-center space-x-1.5"><span class="flex gap-[2px]"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="w-2 h-2 rounded-full bg-gray-400"></span><span class="w-2 h-2 rounded-full bg-red-500"></span></span><span>Últimos 5</span></div>
+                        <div class="live-status w-full text-center text-[10px] text-gray-500 pt-1"></div>
                     </div>
                 </div>
             `;
@@ -894,7 +906,7 @@
 
         function renderMatches() {
             const d = getData();
-            const next = d.liga.next_match;
+            const next = d.liga.next_match || { home_code: 'UCH', away_code: '', home_name: 'U. de Chile', away_name: 'Por definir', time: '—', venue: 'Sin partidos programados', status: 'SIN PARTIDOS', competition: 'Liga de Primera 2026' };
             const results = d.liga.recent_results;
             return `
                 <div class="tab-content space-y-4">
@@ -914,7 +926,13 @@
                                 <span class="text-sm font-bold mt-2">${next.home_name}</span>
                             </div>
                             <div>
+                                ${next.live ? `
+                                <span class="text-3xl font-black text-white">${next.hScore} - ${next.aScore}</span>
+                                <span class="block text-[11px] text-emerald-300 font-bold mt-1">${next.clock || 'En juego'}</span>
+                                ` : `
+                                ${next.day ? `<span class="block text-[11px] text-gray-200 font-semibold uppercase">${next.day}</span>` : ''}
                                 <span class="text-2xl font-black text-yellow-300">${next.time}</span>
+                                `}
                                 <span class="block text-[11px] text-gray-200 font-semibold mt-1">${next.venue}</span>
                             </div>
                             <div class="flex flex-col items-center">
@@ -927,7 +945,7 @@
                         <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
                             <span class="text-emerald-300 font-medium flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                Partido Confirmado
+                                ${next.live ? 'En juego ahora' : (next.status === 'SIN PARTIDOS' ? 'Sin fecha por ahora' : 'Partido confirmado')}
                             </span>
                             <a href="https://www.google.com/search?q=${encodeURIComponent(next.home_name + ' vs ' + next.away_name + ' 2026')}" target="_blank" class="px-3 py-1 rounded-xl bg-white/20 hover:bg-white/30 font-semibold text-white transition-all flex items-center">
                                 Buscar noticias en Google
@@ -1409,6 +1427,7 @@
             });
 
             if (window.lgSetTab) window.lgSetTab(tab);
+            updateLiveStatus();
         }
 
         // ============================================================
@@ -1474,7 +1493,15 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel p-4 rounded-3xl space-y-4" style="--i:3">
+                    <div class="glass-panel p-4 rounded-3xl space-y-3" style="--i:3">
+                        <h3 class="text-sm font-bold text-white">Datos en vivo</h3>
+                        <p class="text-xs text-gray-400">Tabla, resultados y próximo partido se actualizan solos cada 5 minutos (cada 30 segundos si hay un partido en juego) y al volver a abrir la app.</p>
+                        <p class="live-status text-sm font-semibold text-blue-400"></p>
+                        <p id="live-detail" class="text-[11px] text-gray-500"></p>
+                        <button type="button" id="refresh-btn" onclick="refreshData(true)" class="pressable w-full py-2.5 rounded-xl text-sm font-bold bg-uchile-blue text-white border border-uchile-gold">Actualizar ahora</button>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-3xl space-y-4" style="--i:4">
                         <div>
                             <h3 class="text-sm font-bold text-white">Barra de pestañas · Liquid Glass</h3>
                             <p class="text-xs text-gray-400 mt-1">Ajusta el efecto de vidrio de la barra inferior. Los cambios se ven al instante y se guardan en este dispositivo.</p>
@@ -1613,22 +1640,279 @@
         // el archivo local con file://) o el JSON tiene estructura
         // incorrecta, usa FALLBACK_DATA.
         // ============================================================
-        async function loadData() {
+        /*LIVE_START*/
+        // ============================================================
+        // Datos en vivo (ESPN, gratis y sin clave) + data.json (Wikipedia)
+        // Si la fuente en vivo falla, la app sigue con data.json / respaldo.
+        // ============================================================
+        const ESPN_BASE = 'https://site.api.espn.com/apis/';
+        const CODE_NAMES = {};
+        (typeof standingsData !== 'undefined' ? standingsData : []).forEach(t => { CODE_NAMES[t.code] = t.name; });
+        let liveStatus = { standings: false, matches: false, liveAny: false, at: null, error: '' };
+
+        function normName(n) {
+            return String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/'{2,}/g, '').toLowerCase().trim();
+        }
+        function codeForName(name) {
+            const n = normName(name);
+            if (!n) return null;
+            if (/universidad de concepcion|u\.? de concepcion|univ\.? concepcion/.test(n)) return 'UDC';
+            if (/universidad de chile|u\.? de chile/.test(n)) return 'UCH';
+            if (/catolica/.test(n)) return 'UC';
+            if (/colo.?colo/.test(n)) return 'CC';
+            if (/everton/.test(n)) return 'EVE';
+            if (/palestino/.test(n)) return 'PAL';
+            if (/limache/.test(n)) return 'LIM';
+            if (/huachipato/.test(n)) return 'HUA';
+            if (/nublense/.test(n)) return 'ÑUB';
+            if (/serena/.test(n)) return 'SER';
+            if (/coquimbo/.test(n)) return 'COQ';
+            if (/concepcion/.test(n)) return 'CON';
+            if (/audax/.test(n)) return 'AUD';
+            if (/higgins/.test(n)) return 'OHI';
+            if (/cobresal/.test(n)) return 'CSL';
+            if (/calera/.test(n)) return 'ULC';
+            return null;
+        }
+        function cleanTeamName(raw) {
+            const code = codeForName(raw);
+            return code && CODE_NAMES[code] ? CODE_NAMES[code] : String(raw || '').replace(/'{2,}/g, '').trim();
+        }
+        function fmtClock(d) { return d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Santiago' }); }
+        function fmtDay(d) { return d.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Santiago' }).replace(/\./g, ''); }
+        function fmtShort(d) { return d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', timeZone: 'America/Santiago' }); }
+
+        async function fetchJSON(url, ms) {
+            const ctl = new AbortController();
+            const t = setTimeout(() => ctl.abort(), ms || 10000);
             try {
-                const res = await fetch('data.json', { cache: 'no-store' });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const parsed = await res.json();
-                // Validar estructura mínima
-                if (!parsed || !parsed.liga || !Array.isArray(parsed.liga.standings) || !parsed.liga.standings.length) {
-                    console.warn('[Mi UChile] data.json no tiene estructura esperada — usando FALLBACK_DATA. Recibido:', parsed);
-                    throw new Error('Estructura de data.json inválida (falta liga.standings)');
-                }
-                appData = parsed;
-                console.log('[Mi UChile] ✓ Datos cargados desde data.json', appData.meta);
-            } catch (err) {
-                console.warn('[Mi UChile] Usando datos de fallback:', err.message);
-                appData = null;  // getData() usará FALLBACK_DATA
+                const r = await fetch(url, { signal: ctl.signal, cache: 'no-store' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return await r.json();
+            } finally { clearTimeout(t); }
+        }
+
+        function statVal(entry, names) {
+            const st = entry.stats || [];
+            for (const nm of names) {
+                const f = st.find(x => x.name === nm || x.abbreviation === nm || x.type === nm);
+                if (f && f.value !== undefined && f.value !== null && isFinite(Number(f.value))) return Number(f.value);
             }
+            return null;
+        }
+
+        function parseEspnStandings(json) {
+            let entries = null;
+            if (json && Array.isArray(json.children)) {
+                for (const c of json.children) {
+                    if (c.standings && Array.isArray(c.standings.entries) && c.standings.entries.length) { entries = c.standings.entries; break; }
+                }
+            }
+            if (!entries && json && json.standings && Array.isArray(json.standings.entries)) entries = json.standings.entries;
+            if (!entries || entries.length < 8) throw new Error('standings inválida');
+            const rows = [];
+            entries.forEach(e => {
+                const code = codeForName(e.team && (e.team.displayName || e.team.name || e.team.shortDisplayName));
+                if (!code) return;
+                rows.push({
+                    code, name: CODE_NAMES[code] || e.team.displayName,
+                    pj: statVal(e, ['gamesPlayed', 'GP']), g: statVal(e, ['wins', 'W']), e: statVal(e, ['ties', 'draws', 'D']), p: statVal(e, ['losses', 'L']),
+                    gf: statVal(e, ['pointsFor', 'F']), gc: statVal(e, ['pointsAgainst', 'A']),
+                    dg: statVal(e, ['pointDifferential', 'GD']), pts: statVal(e, ['points', 'P']), rank: statVal(e, ['rank'])
+                });
+            });
+            if (rows.length < 8 || rows.some(r => r.pts === null || r.pj === null)) throw new Error('standings incompleta');
+            rows.forEach(r => { if (r.dg === null && r.gf !== null && r.gc !== null) r.dg = r.gf - r.gc; });
+            rows.sort((a, b) => (b.pts - a.pts) || ((b.dg || 0) - (a.dg || 0)) || ((b.gf || 0) - (a.gf || 0)));
+            const n = rows.length;
+            rows.forEach((r, i) => {
+                r.pos = i + 1;
+                r.zone = r.pos <= 3 ? 'libertadores' : r.pos <= 7 ? 'sudamericana' : (r.pos >= n - 1 ? 'descenso' : undefined);
+                if (r.code === 'UCH') r.isU = true;
+                delete r.rank;
+            });
+            return rows;
+        }
+
+        function parseEspnEvents(json) {
+            const out = [];
+            ((json && json.events) || []).forEach(ev => {
+                const comp = ev.competitions && ev.competitions[0];
+                if (!comp || !comp.competitors) return;
+                const h = comp.competitors.find(c => c.homeAway === 'home');
+                const a = comp.competitors.find(c => c.homeAway === 'away');
+                if (!h || !a) return;
+                const hc = codeForName(h.team && (h.team.displayName || h.team.name));
+                const ac = codeForName(a.team && (a.team.displayName || a.team.name));
+                if (!hc || !ac) return;
+                const st = (ev.status && ev.status.type) || {};
+                out.push({
+                    date: new Date(ev.date), state: st.state || 'pre', typeName: st.name || '', completed: !!st.completed,
+                    detail: st.shortDetail || st.detail || '', clock: (ev.status && ev.status.displayClock) || '',
+                    hc, ac, hs: Number(h.score), as: Number(a.score),
+                    venue: (comp.venue && comp.venue.fullName) || ''
+                });
+            });
+            return out.filter(m => !isNaN(m.date.getTime())).sort((x, y) => x.date - y.date);
+        }
+
+        function buildLiveFromEvents(events, now) {
+            const done = events.filter(m => m.state === 'post' && isFinite(m.hs) && isFinite(m.as));
+            // Últimos 5 de cada equipo (del más antiguo al más reciente)
+            const form = {};
+            done.forEach(m => {
+                [[m.hc, m.hs, m.as], [m.ac, m.as, m.hs]].forEach(([c, gf, gc]) => {
+                    (form[c] = form[c] || []).push(gf > gc ? 'G' : gf < gc ? 'P' : 'E');
+                });
+            });
+            Object.keys(form).forEach(c => { form[c] = form[c].slice(-5); });
+
+            const uDone = done.filter(m => m.hc === 'UCH' || m.ac === 'UCH').slice(-6).reverse();
+            const recent = uDone.map(m => {
+                const uHome = m.hc === 'UCH';
+                const uG = uHome ? m.hs : m.as, oG = uHome ? m.as : m.hs;
+                return {
+                    home: CODE_NAMES[m.hc] || m.hc, hCode: m.hc, hScore: m.hs,
+                    away: CODE_NAMES[m.ac] || m.ac, aCode: m.ac, aScore: m.as,
+                    date: fmtShort(m.date), win: uG > oG, draw: uG === oG
+                };
+            });
+
+            const uAll = events.filter(m => m.hc === 'UCH' || m.ac === 'UCH');
+            const liveU = uAll.find(m => m.state === 'in');
+            const upcoming = uAll.filter(m => m.state === 'pre' && !/POSTPON|CANCEL|SUSPEND/i.test(m.typeName) && m.date.getTime() > now - 3 * 3600e3);
+            const pick = liveU || upcoming[0] || null;
+            let next = null;
+            if (pick) {
+                const live = pick.state === 'in';
+                const today = fmtShort(pick.date) === fmtShort(new Date(now));
+                next = {
+                    home_code: pick.hc, away_code: pick.ac,
+                    home_name: CODE_NAMES[pick.hc] || pick.hc, away_name: CODE_NAMES[pick.ac] || pick.ac,
+                    time: fmtClock(pick.date), day: fmtDay(pick.date), venue: pick.venue || 'Estadio por confirmar',
+                    status: live ? 'EN VIVO' : (today ? 'HOY' : 'PRÓXIMO PARTIDO'),
+                    competition: 'Liga de Primera 2026',
+                    live, hScore: pick.hs, aScore: pick.as, clock: pick.clock || pick.detail
+                };
+            }
+            return { form, recent, next, liveAny: events.some(m => m.state === 'in') };
+        }
+
+        async function loadLive() {
+            const y = new Date().getFullYear();
+            const res = { standings: null, events: null };
+            const errs = [];
+            await Promise.all([
+                fetchJSON(ESPN_BASE + 'v2/sports/soccer/chi.1/standings').then(j => { res.standings = parseEspnStandings(j); }).catch(e => errs.push('tabla: ' + e.message)),
+                fetchJSON(ESPN_BASE + 'site/v2/sports/soccer/chi.1/scoreboard?dates=' + y + '0101-' + y + '1231&limit=500', 15000).then(j => { res.events = parseEspnEvents(j); if (!res.events.length) throw new Error('sin partidos'); }).catch(e => errs.push('partidos: ' + e.message))
+            ]);
+            return { res, errs };
+        }
+/*LIVE_END*/
+
+        async function loadData() {
+            // 1) data.json (Wikipedia, generado por el Action): copas, goleadores, asistencias
+            let base = null;
+            try {
+                const r = await fetch('data.json?v=' + Math.floor(Date.now() / 60000), { cache: 'no-store' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const parsed = await r.json();
+                if (!parsed || !parsed.liga || !Array.isArray(parsed.liga.standings) || !parsed.liga.standings.length) throw new Error('Estructura de data.json inválida');
+                base = parsed;
+            } catch (err) {
+                console.warn('[Mi UChile] data.json no disponible:', err.message);
+            }
+            const merged = base ? JSON.parse(JSON.stringify(base)) : JSON.parse(JSON.stringify(FALLBACK_DATA));
+            // Limpieza de nombres/flags de los resultados que vienen de Wikipedia
+            if (merged.liga && Array.isArray(merged.liga.recent_results)) {
+                merged.liga.recent_results = merged.liga.recent_results.map(r => {
+                    const hCode = r.hCode || codeForName(r.home), aCode = r.aCode || codeForName(r.away);
+                    const uHome = hCode === 'UCH';
+                    const uG = uHome ? r.hScore : r.aScore, oG = uHome ? r.aScore : r.hScore;
+                    return Object.assign({}, r, {
+                        home: cleanTeamName(r.home), away: cleanTeamName(r.away), hCode, aCode,
+                        win: r.win !== undefined ? r.win : uG > oG, draw: r.draw !== undefined ? r.draw : uG === oG
+                    });
+                });
+            }
+            // 2) ESPN en vivo: tabla, resultados, últimos 5 y próximo partido
+            let errs = [];
+            try {
+                const { res, errs: e2 } = await loadLive();
+                errs = e2;
+                liveStatus.standings = !!res.standings;
+                liveStatus.matches = !!res.events;
+                if (res.standings) merged.liga.standings = res.standings;
+                if (res.events) {
+                    const b = buildLiveFromEvents(res.events, Date.now());
+                    merged.liga.standings.forEach(t => { if (b.form[t.code]) t.last5 = b.form[t.code]; });
+                    if (b.recent.length) merged.liga.recent_results = b.recent;
+                    merged.liga.next_match = b.next;
+                    liveStatus.liveAny = b.liveAny;
+                } else { liveStatus.liveAny = false; }
+            } catch (err) {
+                errs.push(err.message);
+                liveStatus.standings = false; liveStatus.matches = false; liveStatus.liveAny = false;
+            }
+            liveStatus.error = errs.join(' · ');
+            liveStatus.at = new Date();
+            if (liveStatus.standings || liveStatus.matches) {
+                merged.meta = Object.assign({}, merged.meta || {}, { fuente: 'ESPN (en vivo) + Wikipedia' });
+            }
+            appData = merged;
+            console.log('[Mi UChile] datos', { liveStatus, jsonOk: !!base });
+        }
+
+        // ---------- Refresco automático ----------
+        let refreshing = false, lastRefresh = Date.now();
+        function statusText() {
+            const t = liveStatus.at ? fmtClock(liveStatus.at) : '—';
+            if (liveStatus.standings && liveStatus.matches) return (liveStatus.liveAny ? '🔴 Partido en juego · ' : '') + 'En vivo (ESPN) · actualizado ' + t;
+            if (liveStatus.standings || liveStatus.matches) return 'En vivo parcial (ESPN) · actualizado ' + t;
+            return 'Sin conexión con la fuente en vivo · mostrando datos guardados';
+        }
+        function updateLiveStatus() {
+            document.querySelectorAll('.live-status').forEach(el => { el.textContent = statusText(); });
+            const d = document.getElementById('live-detail');
+            if (d) {
+                const m = getData().meta || {};
+                const w = m.ultima_actualizacion ? new Date(m.ultima_actualizacion).toLocaleString('es-CL') : '—';
+                d.textContent = 'Goleadores y asistencias (Wikipedia): ' + w + (liveStatus.error ? ' · Aviso: ' + liveStatus.error : '');
+            }
+        }
+        function rerenderCurrent() {
+            const content = document.getElementById('app-content');
+            if (!content) return;
+            if (currentTab === 'tabla') content.innerHTML = renderStandings();
+            else if (currentTab === 'partidos') content.innerHTML = renderMatches();
+            else if (currentTab === 'club' && currentClubSection === 'estadisticas') { const c = document.getElementById('club-content'); if (c) c.innerHTML = renderClubSection('estadisticas'); }
+            else return;
+            content.querySelectorAll('.tab-content, .tab-content > *').forEach(el => { el.style.animation = 'none'; });
+        }
+        async function refreshData(force) {
+            if (refreshing) return;
+            refreshing = true;
+            const btn = document.getElementById('refresh-btn'); if (btn) btn.textContent = 'Actualizando…';
+            try {
+                const sig = () => JSON.stringify([getData().liga, getData().estadisticas]);
+                const before = sig();
+                await loadData();
+                if (sig() !== before) rerenderCurrent();
+            } catch (e) { console.warn('[Mi UChile] refresh falló', e); }
+            finally {
+                refreshing = false; lastRefresh = Date.now();
+                if (btn) btn.textContent = 'Actualizar ahora';
+                updateLiveStatus();
+            }
+        }
+        function startAutoRefresh() {
+            setInterval(() => {
+                if (document.hidden) return;
+                const every = liveStatus.liveAny ? 30e3 : 5 * 60e3;
+                if (Date.now() - lastRefresh >= every) refreshData();
+            }, 15e3);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastRefresh > 45e3) refreshData(); });
+            window.addEventListener('online', () => refreshData());
         }
 
         // ============================================================
@@ -1640,6 +1924,7 @@
             try {
                 await loadData();
                 switchTab('tabla');
+                startAutoRefresh();
             } catch (err) {
                 console.error('[Mi UChile] Error al inicializar:', err);
                 // Mostrar mensaje de error visible en lugar de pantalla en blanco

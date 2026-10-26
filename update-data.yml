@@ -1,0 +1,52 @@
+name: Actualizar datos desde Wikipedia
+
+# Corre cada 30 minutos (GitHub puede retrasarlo unos minutos) y también:
+# - Cuando se hace push a main (para probar cambios en el scraper)
+# - Manualmente desde la pestaña Actions del repo
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  push:
+    branches: [ main ]
+    paths:
+      - "scripts/scrape_wikipedia.py"
+      - ".github/workflows/update-data.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # Necesario para que el bot haga commit del data.json
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ejecutar el scraper
+        run: python3 scripts/scrape_wikipedia.py
+
+      - name: Verificar que data.json se generó
+        run: |
+          if [ ! -f data.json ]; then
+            echo "ERROR: data.json no se generó"
+            exit 1
+          fi
+          echo "✓ data.json generado correctamente ($(wc -c < data.json) bytes)"
+
+      - name: Commit y push de data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios en data.json — nada que commitear"
+          else
+            git commit -m "Update data.json (Wikipedia scrape) — $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
