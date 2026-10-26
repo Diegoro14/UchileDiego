@@ -333,7 +333,7 @@
             --lg-sink: rgba(0,0,0,.65); --lg-sink2: rgba(0,0,0,.45); --lg-vig: rgba(0,0,0,.38); --lg-cast: rgba(0,0,0,.4);
             --lg-blend: screen; --lg-ca-op: 1;
         }
-        .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 0 .75rem calc(env(safe-area-inset-bottom) + .5rem); pointer-events: none; }
+        .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 0 1rem calc(env(safe-area-inset-bottom) + .5rem); pointer-events: none; }
         .lg-bar {
             position: relative; pointer-events: auto; max-width: 30rem; margin: 0 auto; height: 4.75rem; border-radius: 99px;
             background: var(--lg-glass);
@@ -376,6 +376,9 @@
             background: conic-gradient(from var(--ang, -30deg), rgba(255,255,255,0) 0deg, rgba(255,255,255,.95) 26deg, rgba(120,200,255,.5) 48deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 180deg, rgba(255,150,130,.45) 215deg, rgba(255,255,255,.7) 238deg, rgba(255,255,255,0) 285deg);
             -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
             mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+        /* Capa de toque: recibe todos los gestos, un poco más grande que la barra para que las orillas respondan */
+        .lg-hit { position: absolute; inset: -10px -8px; z-index: 5; border-radius: 99px; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        .lg-bar > :not(.lg-hit) { pointer-events: none; }
         .lg-range { width: 100%; accent-color: var(--tint); margin: 0; height: 1.75rem; }
         @media (prefers-reduced-transparency: reduce) { .lg-bar { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
     </style>
@@ -444,6 +447,7 @@
                 </div>
                 <div class="lg-rim" id="lg-rim"></div>
             </div>
+            <div class="lg-hit" id="lg-hit"></div>
         </div>
     </nav>
 
@@ -548,36 +552,77 @@
             gx = Math.max(0.05, Math.min(0.95, (px - x) / tabW));
             gy = Math.max(0.05, Math.min(0.6, (py - PAD) / lensH));
         }
-        /* Gestos: un solo dedo activo, y la gota siempre se suelta aunque iOS interrumpa el deslizamiento */
-        function settle(useX, e) {
+        /* Gestos: toque (iPhone) con eventos touch, ratón con eventos pointer; siempre se suelta al terminar o ser interrumpido */
+        var hit = $('lg-hit') || bar;
+        var activeTouch = null;
+        function lx(cx) { var r = bar.getBoundingClientRect(); return (cx - r.left) * (W / (r.width || 1)); }
+        function glareXY(cx, cy) {
+            var r = bar.getBoundingClientRect();
+            var px = lx(cx), py = (cy - r.top) * (H / (r.height || 1));
+            gx = Math.max(0.05, Math.min(0.95, (px - x) / tabW));
+            gy = Math.max(0.05, Math.min(0.6, (py - PAD) / lensH));
+        }
+        function settle(cx) {
             if (!dragging) return;
-            dragging = false; activeId = null; growTarget = 0; gx = 0.3; gy = 0.15;
-            var px = (useX && e && isFinite(e.clientX) && e.clientX > 0) ? clampX(localX(e) - tabW / 2) : clampX(x);
+            dragging = false; activeId = null; activeTouch = null; growTarget = 0; gx = 0.3; gy = 0.15;
+            var px = (typeof cx === 'number' && isFinite(cx)) ? clampX(lx(cx) - tabW / 2) : clampX(target);
             var i = indexAt(px + tabW / 2);
             target = xFor(i);
             if (i !== current && typeof switchTab === 'function') switchTab(IDS[i]);
             current = i; kick();
         }
-        bar.addEventListener('pointerdown', function (e) {
-            if (dragging) settle(false);            /* por si quedó un gesto colgado */
-            activeId = e.pointerId; dragging = true; lastMove = performance.now();
-            try { bar.setPointerCapture(e.pointerId); } catch (err) {}
-            growTarget = 1; flash = 1; target = clampX(localX(e) - tabW / 2);
-            updateGlare(e); kick();
-        });
-        bar.addEventListener('pointermove', function (e) {
-            if (!dragging || e.pointerId !== activeId) return;
-            if (e.pointerType === 'mouse' && e.buttons === 0) { settle(true, e); return; }
+        function begin(cx, cy) {
+            if (dragging) settle();
+            dragging = true; lastMove = performance.now();
+            growTarget = 1; flash = 1; target = clampX(lx(cx) - tabW / 2);
+            glareXY(cx, cy); kick();
+        }
+        function move(cx, cy) {
+            if (!dragging) return;
             lastMove = performance.now();
-            target = clampX(localX(e) - tabW / 2);
-            updateGlare(e); kick();
+            target = clampX(lx(cx) - tabW / 2);
+            glareXY(cx, cy); kick();
+        }
+        function findTouch(list) {
+            for (var i = 0; i < list.length; i++) if (list[i].identifier === activeTouch) return list[i];
+            return null;
+        }
+        hit.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            if (activeTouch !== null && dragging) return;      /* ya hay un dedo activo */
+            var t = e.changedTouches[0];
+            activeTouch = t.identifier;
+            begin(t.clientX, t.clientY);
+        }, { passive: false });
+        hit.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+            var t = findTouch(e.changedTouches); if (t) move(t.clientX, t.clientY);
+        }, { passive: false });
+        hit.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            var t = findTouch(e.changedTouches); if (t) settle(t.clientX);
+        }, { passive: false });
+        hit.addEventListener('touchcancel', function (e) {
+            if (findTouch(e.changedTouches)) settle();
         });
-        bar.addEventListener('pointerup', function (e) { if (e.pointerId === activeId) settle(true, e); });
-        bar.addEventListener('pointercancel', function (e) { if (e.pointerId === activeId) settle(false); });
-        bar.addEventListener('lostpointercapture', function (e) { if (e.pointerId === activeId) settle(false); });
-        bar.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-        ['touchcancel', 'blur', 'pagehide'].forEach(function (ev) { window.addEventListener(ev, function () { settle(false); }); });
-        document.addEventListener('visibilitychange', function () { if (document.hidden) settle(false); });
+        /* Ratón / lápiz */
+        hit.addEventListener('pointerdown', function (e) {
+            if (e.pointerType === 'touch') return;
+            activeId = e.pointerId;
+            try { hit.setPointerCapture(e.pointerId); } catch (err) {}
+            begin(e.clientX, e.clientY);
+        });
+        hit.addEventListener('pointermove', function (e) {
+            if (e.pointerType === 'touch' || e.pointerId !== activeId) return;
+            if (e.pointerType === 'mouse' && e.buttons === 0) { settle(e.clientX); return; }
+            move(e.clientX, e.clientY);
+        });
+        hit.addEventListener('pointerup', function (e) { if (e.pointerType !== 'touch' && e.pointerId === activeId) settle(e.clientX); });
+        hit.addEventListener('pointercancel', function (e) { if (e.pointerType !== 'touch' && e.pointerId === activeId) settle(); });
+        hit.addEventListener('lostpointercapture', function (e) { if (e.pointerType !== 'touch' && e.pointerId === activeId) settle(); });
+        hit.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        ['blur', 'pagehide'].forEach(function (ev) { window.addEventListener(ev, function () { settle(); }); });
+        document.addEventListener('visibilitychange', function () { if (document.hidden) settle(); });
 
         measure(); render();
         if (window.ResizeObserver) new ResizeObserver(function () { measure(); render(); }).observe(bar);
