@@ -15,6 +15,7 @@
         "zone": "libertadores",
         "notes": "Clasifica como campeón a la Copa Libertadores",
         "isU": false,
+        "last5": [],
         "pos": 1
       },
       {
@@ -31,6 +32,7 @@
         "zone": "libertadores",
         "notes": "Clasifica a la Copa Libertadores",
         "isU": true,
+        "last5": [],
         "pos": 2
       },
       {
@@ -47,6 +49,7 @@
         "zone": "libertadores",
         "notes": "Clasifica a la Serie Pre-Libertadores",
         "isU": false,
+        "last5": [],
         "pos": 3
       },
       {
@@ -63,6 +66,7 @@
         "zone": "sudamericana",
         "notes": "Clasifica a la Copa Sudamericana",
         "isU": false,
+        "last5": [],
         "pos": 4
       },
       {
@@ -79,6 +83,7 @@
         "zone": "sudamericana",
         "notes": "Clasifica a la Copa Sudamericana",
         "isU": false,
+        "last5": [],
         "pos": 5
       },
       {
@@ -95,6 +100,7 @@
         "zone": "sudamericana",
         "notes": "Clasifica a la Copa Sudamericana",
         "isU": false,
+        "last5": [],
         "pos": 6
       },
       {
@@ -111,6 +117,7 @@
         "zone": "sudamericana",
         "notes": "Clasifica a la Copa Sudamericana",
         "isU": false,
+        "last5": [],
         "pos": 7
       },
       {
@@ -127,6 +134,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 8
       },
       {
@@ -143,6 +151,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 9
       },
       {
@@ -159,6 +168,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 10
       },
       {
@@ -175,6 +185,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 11
       },
       {
@@ -191,6 +202,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 12
       },
       {
@@ -207,6 +219,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 13
       },
       {
@@ -223,6 +236,7 @@
         "zone": null,
         "notes": "",
         "isU": false,
+        "last5": [],
         "pos": 14
       },
       {
@@ -239,6 +253,7 @@
         "zone": "descenso",
         "notes": "Desciende a la Liga de Ascenso",
         "isU": false,
+        "last5": [],
         "pos": 15
       },
       {
@@ -255,6 +270,7 @@
         "zone": "descenso",
         "notes": "Desciende a la Liga de Ascenso",
         "isU": false,
+        "last5": [],
         "pos": 16
       }
     ],
@@ -602,7 +618,7 @@
     "vallas_invictas": []
   },
   "meta": {
-    "ultima_actualizacion": "2026-10-26T04:41:15.403689+00:00",
+    "ultima_actualizacion": "2026-10-26T05:55:51.724129+00:00",
     "fuente": "Wikipedia (CC BY-SA) — https://es.wikipedia.org/wiki/Liga_de_Primera_2026",
     "temporada": "2026"
   }

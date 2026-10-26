@@ -543,7 +543,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5 font-medium">
-                                    ${getData().liga.standings.map(item => {
+                                    ${(getData().liga.standings || []).map(item => {
                                         const isU = item.isU;
                                         let zoneColor = 'bg-transparent';
                                         if (item.zone === 'libertadores') zoneColor = 'bg-blue-500';
@@ -562,25 +562,25 @@
                                                             const src = logoFor(item.code);
                                                             return src
                                                                 ? `<img src="${src}" alt="${item.name}" class="w-7 h-7 object-contain" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
-                                                                     <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}" style="display:none;">${item.code}</div>`
-                                                                : `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}">${item.code}</div>`;
+                                                                     <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}" style="display:none;">${item.code || '?'}</div>`
+                                                                : `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${isU ? 'bg-uchile-gold text-blue-950 border border-white' : 'bg-slate-700 text-gray-200'}">${item.code || '?'}</div>`;
                                                         })()}
                                                     </div>
                                                     <span class="${isU ? 'text-white text-sm font-black tracking-wide' : 'font-semibold'}">${item.name}</span>
                                                 </td>
-                                                <td class="py-3 px-2 text-center">${item.pj}</td>
-                                                <td class="py-3 px-2 text-center">${item.g}</td>
-                                                <td class="py-3 px-2 text-center">${item.e}</td>
-                                                <td class="py-3 px-2 text-center">${item.p}</td>
-                                                <td class="py-3 px-2 text-center opacity-80">${item.gf}</td>
-                                                <td class="py-3 px-2 text-center opacity-80">${item.gc}</td>
-                                                <td class="py-3 px-2 text-center font-semibold ${item.dg > 0 ? 'text-emerald-400' : item.dg < 0 ? 'text-red-400' : 'text-gray-400'}">
-                                                    ${item.dg > 0 ? '+' + item.dg : item.dg}
+                                                <td class="py-3 px-2 text-center">${item.pj ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center">${item.g ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center">${item.e ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center">${item.p ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center opacity-80">${item.gf ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center opacity-80">${item.gc ?? '—'}</td>
+                                                <td class="py-3 px-2 text-center font-semibold ${(item.dg || 0) > 0 ? 'text-emerald-400' : (item.dg || 0) < 0 ? 'text-red-400' : 'text-gray-400'}">
+                                                    ${(item.dg || 0) > 0 ? '+' + item.dg : (item.dg ?? '—')}
                                                 </td>
-                                                <td class="py-3 px-3 text-center font-extrabold text-sm ${isU ? 'text-yellow-300' : 'text-white'}">${item.pts}</td>
+                                                <td class="py-3 px-3 text-center font-extrabold text-sm ${isU ? 'text-yellow-300' : 'text-white'}">${item.pts ?? '—'}</td>
                                                 <td class="py-3 px-4">
                                                     <div class="flex items-center justify-center space-x-1">
-                                                        ${item.last5.map(res => {
+                                                        ${(item.last5 || []).map(res => {
                                                             if (res === 'G') {
                                                                 return `<span class="w-5 h-5 rounded-full bg-emerald-500/90 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Victoria">✓</span>`;
                                                             } else if (res === 'P') {

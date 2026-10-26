@@ -161,6 +161,7 @@ def parse_standings(wikitext):
             "zone": None,
             "notes": "",
             "isU": "Universidad de Chile" in name,
+            "last5": [],  # No lo extrae Wikipedia — el frontend lo mostrará vacío
         })
 
     # Sort by points desc, then goal difference desc, then wins desc
