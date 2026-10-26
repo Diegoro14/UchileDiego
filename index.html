@@ -381,9 +381,26 @@
         .lg-bar > :not(.lg-hit) { pointer-events: none; }
         .lg-range { width: 100%; accent-color: var(--tint); margin: 0; height: 1.75rem; }
         @media (prefers-reduced-transparency: reduce) { .lg-bar { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
+        /* ============================================
+           Fondo decorativo de la app (imagen U)
+           ============================================ */
+        #app-fondo {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url('logos/fondo-u.png') center center / cover no-repeat;
+            opacity: 0.15;               /* bien tenue: solo ambienta, no estorba la lectura */
+            pointer-events: none;
+        }
+        html.light #app-fondo { opacity: 0.07; }
+        @media (prefers-reduced-transparency: reduce) { #app-fondo { opacity: 0.05; } }
     </style>
 </head>
 <body class="bg-ios-bg text-gray-100 min-h-screen flex flex-col">
+
+    <!-- Fondo decorativo de la app (detrás de todo el contenido, no interactivo) -->
+    <div id="app-fondo" aria-hidden="true"></div>
 
     <!-- Header / Status Bar Area (original) -->
     <header id="app-header" class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pb-3 flex items-center justify-between gap-3 shadow-lg">
@@ -660,21 +677,21 @@
         // Commons + estilizados para los clubes sin escudo en Commons)
         // ============================================================
         const LOGOS = {
-            "CC":   "logos/colo-colo.svg",
+            "CC":   "logos/colo-colo.png",
             "UCH":  "logos/universidad-de-chile.png",
             "UC":   "logos/universidad-catolica.svg",
             "EVE":  "logos/everton.png",
             "PAL":  "logos/palestino.png",
-            "LIM":  "logos/deportes-limache.svg",
+            "LIM":  "logos/deportes-limache.png",
             "HUA":  "logos/huachipato.svg",
             "ÑUB":  "logos/nublense.png",
-            "SER":  "logos/la-serena.svg",
-            "COQ":  "logos/coquimbo-unido.svg",
-            "CON":  "logos/deportes-concepcion.svg",
+            "SER":  "logos/la-serena.png",
+            "COQ":  "logos/coquimbo-unido.png",
+            "CON":  "logos/deportes-concepcion.png",
             "AUD":  "logos/audax-italiano.png",
-            "OHI":  "logos/ohiggins.svg",
-            "CSL":  "logos/cobresal.svg",
-            "UDC":  "logos/universidad-de-concepcion.svg",
+            "OHI":  "logos/ohiggins.png",
+            "CSL":  "logos/cobresal.png",
+            "UDC":  "logos/universidad-de-concepcion.png",
             "ULC":  "logos/union-la-calera.png"
         };
         // Helper: returns the logo path for a team code, with a graceful
