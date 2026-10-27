@@ -512,7 +512,7 @@
 
         var W = 0, H = 0, tabW = 0, lensH = 0, PAD = 4;
         var current = 0, x = 0, vx = 0, target = 0, grow = 0, vg = 0, growTarget = 0, dragging = false, raf = 0, last = 0;
-        var flash = 0, gx = 0.3, gy = 0.15, wetApplied = null, lastTurb = 0;
+        var flash = 0, gx = 0.3, gy = 0.15, wetApplied = null, lastTurb = 0, lastPx = 0, downAt = 0, lastMoveAt = 0;
         var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
         var K = 240, C = reduce ? 40 : 21;
         var baseTabs = btns;
@@ -598,18 +598,21 @@
             dragging = true;
             if (raf) { cancelAnimationFrame(raf); raf = 0; }
             try { bar.setPointerCapture(e.pointerId); } catch (err) {}
-            growTarget = 1; flash = 1; target = clampX(localX(e) - tabW / 2);
+            lastPx = localX(e); downAt = Date.now();
+            growTarget = 1; flash = 1; target = clampX(lastPx - tabW / 2);
             updateGlare(e); kick();
         });
         bar.addEventListener('pointermove', function (e) {
             if (!dragging) return;
-            target = clampX(localX(e) - tabW / 2);
+            lastPx = localX(e); lastMoveAt = Date.now();
+            target = clampX(lastPx - tabW / 2);
             updateGlare(e); kick();
         });
         function release(e) {
             if (!dragging) return;
             dragging = false; growTarget = 0; gx = 0.3; gy = 0.15;
-            var i = indexAt(clampX(localX(e) - tabW / 2) + tabW / 2);
+            var onBar = e && (e.type === 'pointerup' || e.type === 'pointercancel') && e.target && bar.contains(e.target);
+            var i = indexAt(clampX((onBar ? localX(e) : lastPx) - tabW / 2) + tabW / 2);
             target = xFor(i);
             var changed = i !== current;
             current = i; kick();
@@ -620,6 +623,16 @@
         }
         bar.addEventListener('pointerup', release);
         bar.addEventListener('pointercancel', release);
+        /* Si iOS pierde el "soltar" (por ejemplo al empezar un scroll), la gota quedaba agarrada y la barra no respondía: se suelta igual */
+        bar.addEventListener('lostpointercapture', release);
+        document.addEventListener('pointerup', release);
+        document.addEventListener('pointercancel', release);
+        document.addEventListener('touchend', release, { passive: true });
+        document.addEventListener('touchcancel', release, { passive: true });
+        window.addEventListener('blur', release);
+        document.addEventListener('visibilitychange', function () { if (document.hidden) release(); });
+        /* Red de seguridad: si la gota sigue agarrada sin que el dedo se mueva por más de 2 s, se suelta */
+        setInterval(function () { if (dragging && Date.now() - downAt > 2000 && Date.now() - lastMoveAt > 2000) release(); }, 500);
 
         measure(); render();
         if (window.ResizeObserver) new ResizeObserver(function () { measure(); render(); }).observe(bar);
