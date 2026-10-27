@@ -345,25 +345,22 @@
 
         /* ───────── Tab bar · Liquid Glass ───────── */
         :root {
-            --lg-glass: rgba(255,255,255,.46); --lg-ink: var(--tint); --lg-edge: rgba(0,0,0,.10);
+            --lg-glass: rgba(255,255,255,.78); --lg-ink: var(--tint); --lg-edge: rgba(0,0,0,.10);
             --lg-sink: rgba(0,0,0,.16); --lg-sink2: rgba(0,0,0,.10); --lg-vig: rgba(0,0,0,.10); --lg-cast: rgba(0,0,0,.18);
             --lg-blend: normal; --lg-ca-op: .6;
         }
         html.dark {
-            --lg-glass: rgba(30,30,33,.38); --lg-ink: var(--tint); --lg-edge: rgba(255,255,255,.14);
+            --lg-glass: rgba(90,90,94,.55); --lg-ink: var(--tint); --lg-edge: rgba(255,255,255,.14);
             --lg-sink: rgba(0,0,0,.65); --lg-sink2: rgba(0,0,0,.45); --lg-vig: rgba(0,0,0,.38); --lg-cast: rgba(0,0,0,.4);
             --lg-blend: screen; --lg-ca-op: 1;
         }
         .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 0 .875rem calc(env(safe-area-inset-bottom) + .5rem); pointer-events: none; }
         .lg-bar {
             position: relative; pointer-events: auto; max-width: 28rem; margin: 0 auto; height: 4.125rem; border-radius: 99px;
-            background: var(--lg-glass);
-            -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 0 0 .5px var(--lg-edge), 0 10px 30px var(--lg-cast);
             will-change: transform; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
         }
         .lg-tabs { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; }
-        .tabbar button, .lg-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .125rem; padding: .375rem 0; color: var(--label2); font-size: .6875rem; font-weight: 500; letter-spacing: .02em; border-radius: 2rem; }
+        .tabbar button, .lg-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .125rem; padding: .375rem 0; color: var(--lg-fg, var(--label2)); font-size: .6875rem; font-weight: 500; letter-spacing: .02em; border-radius: 2rem; }
         .tabbar button { transition: transform 120ms ease-out; }
         .tabbar button i, .tabbar button svg, .lg-tab i, .lg-tab svg { font-size: 1.3125rem; height: 1.5rem; }
         .lg-tab { pointer-events: none; }
@@ -397,8 +394,26 @@
             background: conic-gradient(from var(--ang, -30deg), rgba(255,255,255,0) 0deg, rgba(255,255,255,.95) 26deg, rgba(120,200,255,.5) 48deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 180deg, rgba(255,150,130,.45) 215deg, rgba(255,255,255,.7) 238deg, rgba(255,255,255,0) 285deg);
             -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
             mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+        /* Reposo (como iOS): la selección es una cápsula plana, más oscura que la barra; al tocar se vuelve burbuja de cristal */
+        .lg-lens { transition: box-shadow .22s ease, background-color .22s ease; }
+        .lg-r, .lg-b { transition: opacity .22s ease; }
+        .lg-lens.lg-flat {
+            background: var(--lg-flat); -webkit-backdrop-filter: none; backdrop-filter: none;
+            box-shadow: none;
+        }
+        .lg-lens.lg-flat::before, .lg-lens.lg-flat::after { display: none; }
+        .lg-lens.lg-flat .lg-r, .lg-lens.lg-flat .lg-b { opacity: 0; }
+        .lg-lens.lg-flat .lg-glare, .lg-lens.lg-flat .lg-rim { opacity: 0 !important; }
+        :root { --lg-flat: rgba(0,0,0,.09); --lg-fg: #0b0b0f; }
+        html.dark { --lg-flat: rgba(0,0,0,.5); --lg-fg: #ffffff; }
+        /* El vidrio de la barra va en su propia capa para poder contraerse solo donde pasa la burbuja */
+        .lg-bg, .lg-cast, .lg-edge { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+        .lg-bg { background: var(--lg-glass); -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5); }
+        .lg-cast { box-shadow: 0 10px 30px var(--lg-cast); }
+        .lg-edge { width: 100%; height: 100%; overflow: visible; }
+        .lg-edge polygon { fill: none; stroke: var(--lg-edge); stroke-width: 1; vector-effect: non-scaling-stroke; }
         .lg-range { width: 100%; accent-color: var(--tint); margin: 0; height: 1.75rem; }
-        @media (prefers-reduced-transparency: reduce) { .lg-bar { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+        @media (prefers-reduced-transparency: reduce) { .lg-bg { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
         /* Botones de la barra integrados al vidrio (mismo reset que aplica Gastos en su hoja global) */
         .tabbar button { background: none; border: 0; font: inherit; cursor: pointer; }
         /* Ajustes · paneles colapsables */
@@ -469,6 +484,9 @@
             </filter>
         </svg>
         <div class="lg-bar" id="lg-bar">
+            <div class="lg-cast"></div>
+            <div class="lg-bg" id="lg-bg"></div>
+            <svg class="lg-edge" id="lg-edge" aria-hidden="true"><polygon id="lg-edge-p" points=""/></svg>
             <div class="lg-tabs" id="lg-base">
                 <button onclick="switchTab('tabla')" id="tab-btn-tabla" aria-label="Tabla"><svg viewBox="2.5 2.5 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Tabla</span></button>
                 <button onclick="switchTab('partidos')" id="tab-btn-partidos" aria-label="Partidos"><svg viewBox="2.5 2.5 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>Partidos</span></button>
@@ -494,6 +512,7 @@
     /* Liquid Glass tab bar: gota de vidrio con lupa, reflejo de luz y dispersión de color */
     (function () {
         var $ = function (id) { return document.getElementById(id); };
+        var bg = $('lg-bg'), edgeP = $('lg-edge-p'), lastShape = '';
         var bar = $('lg-bar'), base = $('lg-base'), lens = $('lg-lens'), clone = $('lg-clone');
         var chR = $('lg-r'), chB = $('lg-bl'), main = $('lg-main'), glare = $('lg-glare'), rim = $('lg-rim');
         var btns = base.querySelectorAll('button');
@@ -530,11 +549,37 @@
         function clampX(px) { return Math.max(PAD, Math.min(W - PAD - tabW, px)); }
         function indexAt(px) { return Math.max(0, Math.min(N - 1, Math.floor((px - PAD) / tabW))); }
 
+        /* La barra de vidrio se contrae (arriba y abajo) solo en el tramo por donde pasa la burbuja */
+        function shapeBar() {
+            if (!W || !H) return;
+            var pinch = Math.max(0, Math.min(1.1, grow)) * H * 0.08;
+            var cx = x + tabW / 2, half = tabW * 1.1, R = H / 2, k, th, px, h, dd, b, o;
+            /* Muestras finas en las puntas (semicírculos) y cada ~6 px en el tramo recto */
+            var xs = [];
+            for (k = 0; k <= 16; k++) { th = (Math.PI / 2) * k / 16; xs.push(R - R * Math.cos(th)); }
+            for (px = R + 6; px < W - R - 3; px += 6) xs.push(px);
+            for (k = 0; k <= 16; k++) { th = (Math.PI / 2) * k / 16; xs.push(W - R + R * Math.sin(th)); }
+            var P = [], Q = [];
+            xs.forEach(function (X) {
+                h = X < R ? Math.sqrt(Math.max(0, R * R - (R - X) * (R - X))) : X > W - R ? Math.sqrt(Math.max(0, R * R - (X - (W - R)) * (X - (W - R)))) : R;
+                dd = Math.abs(X - cx); b = dd < half ? 0.5 * (1 + Math.cos(Math.PI * dd / half)) : 0;
+                o = pinch * b * (h / R);
+                P.push([X, R - h + o]); Q.push([X, R + h - o]);
+            });
+            var all = P.concat(Q.reverse());
+            var key = all.map(function (q) { return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ');
+            if (key === lastShape) return;
+            lastShape = key;
+            var cp = 'polygon(' + all.map(function (q) { return q[0].toFixed(1) + 'px ' + q[1].toFixed(1) + 'px'; }).join(',') + ')';
+            bg.style.clipPath = cp; bg.style.webkitClipPath = cp;
+            edgeP.setAttribute('points', key);
+        }
         function render() {
             var stretch = Math.min(Math.abs(vx) / 2600, 0.28);
-            var sx = (1 + grow * 0.14) * (1 + stretch), sy = (1 + grow * 0.24) * (1 - stretch * 0.4);
+            var sx = (1 + grow * 0.24) * (1 + stretch), sy = (1 + grow * 0.23) * (1 - stretch * 0.4);
             lens.style.transform = 'translate3d(' + x + 'px,0,0) scale(' + sx + ',' + sy + ')';
-            bar.style.transform = 'scale(' + (1 + grow * 0.03) + ')';
+            bar.style.transform = 'scale(' + (1 + grow * 0.04) + ')';
+            shapeBar();
             var ca = dis * (0.3 + grow * 0.5 + Math.min(Math.abs(vx) / 2200, 1.1));
             chR.style.transform = 'translate(' + (-ca) + 'px,' + (-ca * 0.35) + 'px)';
             chB.style.transform = 'translate(' + ca + 'px,' + (ca * 0.35) + 'px)';
@@ -542,7 +587,7 @@
             glare.style.opacity = String(Math.min(1, glr * (0.12 + grow * 0.5 + flash * 0.8)));
             rim.style.setProperty('--ang', (-35 + (x / Math.max(W, 1)) * 70) + 'deg');
             rim.style.opacity = String(Math.min(1, 0.55 + glr * 0.35 + grow * 0.2));
-            var s = mag * (1 + grow * 0.1);
+            var gm = Math.max(0, Math.min(1, grow * 1.4)); var s = (1 + (mag - 1) * gm) * (1 + grow * 0.1);
             clone.style.transformOrigin = (tabW / 2) + 'px ' + (lensH / 2) + 'px';
             clone.style.transform = 'scale(' + (1 / sx) + ',' + (1 / sy) + ') translate(' + (-x) + 'px,' + (-PAD) + 'px)';
             /* Los íconos base se desvanecen solo bajo la gota, con borde suave: el color de la lente los "pinta" de a poco */
@@ -598,6 +643,7 @@
             dragging = true;
             if (raf) { cancelAnimationFrame(raf); raf = 0; }
             try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+            lens.classList.remove('lg-flat');
             lastPx = localX(e); downAt = Date.now();
             growTarget = 1; flash = 1; target = clampX(lastPx - tabW / 2);
             updateGlare(e); kick();
@@ -611,6 +657,7 @@
         function release(e) {
             if (!dragging) return;
             dragging = false; growTarget = 0; gx = 0.3; gy = 0.15;
+            lens.classList.add('lg-flat');
             var onBar = e && (e.type === 'pointerup' || e.type === 'pointercancel') && e.target && bar.contains(e.target);
             var i = indexAt(clampX((onBar ? localX(e) : lastPx) - tabW / 2) + tabW / 2);
             target = xFor(i);
@@ -634,6 +681,7 @@
         /* Red de seguridad: si la gota sigue agarrada sin que el dedo se mueva por más de 2 s, se suelta */
         setInterval(function () { if (dragging && Date.now() - downAt > 2000 && Date.now() - lastMoveAt > 2000) release(); }, 500);
 
+        lens.classList.add('lg-flat');
         measure(); render();
         if (window.ResizeObserver) new ResizeObserver(function () { measure(); render(); }).observe(bar);
         window.addEventListener('resize', function () { measure(); render(); });
