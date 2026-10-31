@@ -2322,7 +2322,7 @@
         }
 
 /* ===== Avisos push (PushKit) ===== */
-const PUSH_CFG = { worker: 'https://avisos-diego.diegoro22.workers.dev', app: 'uch', defaults: { lead: 60, change: true } };
+const PUSH_CFG = { worker: 'https://avisos-diego.diegoro22.workers.dev', app: 'uch', defaults: { lead: 60, change: true, goals: true } };
 const PushKit = (() => {
   const LS = 'push-prefs-' + PUSH_CFG.app;
   const prefs = () => { try { return Object.assign({}, PUSH_CFG.defaults, JSON.parse(localStorage.getItem(LS) || '{}')); } catch (e) { return { ...PUSH_CFG.defaults }; } };
@@ -2348,7 +2348,7 @@ const PushKit = (() => {
     const sel = (k, opts) => `<select onchange="PushKit.set('${k}',this.value)" class="bg-slate-800/60 border border-white/10 text-gray-200 rounded-xl px-2 py-2" style="font-size:16px">${opts.map(([v, l]) => `<option value="${v}" ${String(p[k]) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
     const chk = (k, l) => `<label class="flex items-center justify-between gap-3 text-sm text-gray-200"><span>${l}</span><input type="checkbox" ${p[k] !== false ? 'checked' : ''} onchange="PushKit.set('${k}',this.checked)" style="width:22px;height:22px"></label>`;
     ui(`<p class="text-sm font-semibold ${on ? 'text-green-400' : 'text-gray-400'}">${on ? '● Notificaciones activadas' : (Notification.permission === 'denied' ? '● Bloqueadas en Ajustes de iOS' : '○ Desactivadas')}</p>
-      ${on ? `<div class="flex items-center justify-between gap-3 text-sm text-gray-200"><span>Avisar antes del partido</span>${sel('lead', [[0,'No'],[30,'30 min'],[60,'1 hora'],[180,'3 horas'],[1440,'1 día']])}</div>${chk('change','Avisar si cambia fecha u hora')}` : ''}
+      ${on ? `<div class="flex items-center justify-between gap-3 text-sm text-gray-200"><span>Avisar antes del partido</span>${sel('lead', [[0,'No'],[30,'30 min'],[60,'1 hora'],[180,'3 horas'],[1440,'1 día']])}</div>${chk('change','Avisar si cambia fecha u hora')}${chk('goals','Goles y marcador en vivo')}` : ''}
       ${on ? `<button class="${btn} bg-slate-800/60 text-gray-200" onclick="PushKit.test()">Enviar aviso de prueba</button><button class="${btn} bg-slate-800/60 text-gray-200" onclick="PushKit.off()">Desactivar</button>`
            : `<button class="${btn} bg-uchile-blue text-white" onclick="PushKit.on()">Activar notificaciones</button>`}
       <p class="text-[11px] text-gray-500">${msg}</p>`);
