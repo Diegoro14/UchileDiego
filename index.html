@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0B0F19">
+    <meta name="theme-color" content="#002B7A">
     <script>
     /* Tema (claro/oscuro/auto) y tamaño de letra: se aplican antes de pintar para evitar parpadeos */
     (function () {
@@ -22,7 +22,7 @@
             root.classList.toggle('light', light);
             root.classList.toggle('dark', !light);
             var tc = document.querySelector('meta[name="theme-color"]');
-            if (tc) tc.setAttribute('content', light ? '#002B7A' : '#0B0F19');
+            if (tc) tc.setAttribute('content', '#002B7A');
         };
         window.applyFontScale = function (p) {
             var v = parseFloat(p);
@@ -338,11 +338,31 @@
         html.light .glass-panel-highlight .text-emerald-300,
         html.light .glass-panel-highlight .text-emerald-400 { color: #6ee7b7 !important; }
         html.light .glass-panel-highlight .text-uchile-gold { color: #D4AF37 !important; }
+        /* Fila de la U en la tabla: el <tr> también lleva text-white (que en claro pinta negro) y las celdas heredaban ese color */
+        html.light .glass-panel-highlight.text-white,
+        html.light tr.glass-panel-highlight,
+        html.light tr.glass-panel-highlight td { color: #fff !important; }
+        html.light tr.glass-panel-highlight td.text-yellow-300,
+        html.light tr.glass-panel-highlight td .text-yellow-300 { color: #fde047 !important; }
+        html.light tr.glass-panel-highlight td[class*="text-emerald"] { color: #6ee7b7 !important; }
+        html.light tr.glass-panel-highlight td[class*="text-red"] { color: #fecaca !important; }
         /* Cabecera: en claro se mantiene azul institucional (el reloj del iPhone sigue blanco) */
         html.light #app-header { background: linear-gradient(135deg, rgba(0,43,122,.97), rgba(16,28,66,.97)); border-color: rgba(255,255,255,.12); }
         html.light #app-header h1 { color: #fff !important; }
         html.light #app-header p { color: rgba(255,255,255,.72) !important; }
         html.light #app-header .hdr-badge { background: rgba(255,255,255,.16) !important; color: #fff !important; border-color: rgba(255,255,255,.28) !important; }
+        /* Banner superior: azul sólido (sin degradado) y textos blancos en modo claro y oscuro */
+        #app-header, html.light #app-header {
+            background: #002B7A !important;
+            -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+            border-color: rgba(255,255,255,.12) !important;
+            box-shadow: 0 6px 20px -10px rgba(0,0,0,.45) !important;
+        }
+        #app-header h1, html.light #app-header h1 { color: #fff !important; }
+        #app-header p, html.light #app-header p { color: rgba(255,255,255,.72) !important; }
+        #app-header .hdr-badge, html.light #app-header .hdr-badge { background: rgba(255,255,255,.16) !important; color: #fff !important; border-color: rgba(255,255,255,.28) !important; }
+        /* Franja fija azul sobre la zona de la hora/señal/batería: así iOS pinta ese texto en blanco también en modo claro */
+        #status-strip { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #002B7A; z-index: 60; pointer-events: none; }
 
         /* ───────── Tab bar · Liquid Glass v3 ───────── */
         :root {
@@ -443,6 +463,7 @@
 <body class="text-gray-100 min-h-screen flex flex-col">
 
     <!-- Header / Status Bar Area (original) -->
+    <div id="status-strip" aria-hidden="true"></div>
     <header id="app-header" class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 pb-3 flex items-center justify-between gap-3 shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 flex items-center justify-center shrink-0 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]">
