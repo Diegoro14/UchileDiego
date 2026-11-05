@@ -34,6 +34,12 @@ self.addEventListener('push', (event) => {
       } catch (e) {}
     }
     if (!msgs.length) msgs = [FALLBACK];
+    // Avisa al Worker que el push llegó (diagnóstico de demoras).
+    try {
+      const c = await cfg();
+      const sub = await self.registration.pushManager.getSubscription();
+      if (c && sub) fetch(c.worker + '/ack?id=' + await idOf(sub.endpoint) + '&tag=' + encodeURIComponent(msgs[0].tag || ''), { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+    } catch (e) {}
     for (const m of msgs) await show(m);
   })());
 });
